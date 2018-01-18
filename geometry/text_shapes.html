@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0px;
+            overflow: hidden;
+        }
+    </style>
+    <script src="../assets/js/three.js"></script>
+    <script src="../assets/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+</body>
+</html>
+<script>
+    let camera, scene, renderer
+    let controls
+    let aspect = window.innerWidth / window.innerHeight
+
+    function init() {
+        renderer = new THREE.WebGLRenderer({antialias: true})
+        renderer.setSize(window.innerWidth, window.innerHeight)
+        renderer.setPixelRatio(window.devicePixelRatio)
+        document.body.appendChild(renderer.domElement)
+
+        camera = new THREE.PerspectiveCamera(45, aspect, 1, 10000)
+        camera.position.set(0, -400, 600)
+        controls = new THREE.OrbitControls(camera)
+        controls.target.set(0, 0, 0)
+
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0xf0f0f0)
+        let loader = new THREE.FontLoader()
+        loader.load('../assets/fonts/helvetiker_regular.typeface.json', font => {
+            let xMid, text
+            let textShape = new THREE.BufferGeometry()
+            let color = 0x006699
+            let matDark = new THREE.LineBasicMaterial({
+                color: color,
+                side: THREE.DoubleSide
+            })
+            let matLite = new THREE.MeshBasicMaterial({
+                color: color,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.4
+            })
+            let message = 'A B C\na b c'
+            let shapes = font.generateShapes(message)
+            let geo = new THREE.ShapeGeometry(shapes)
+            geo.computeBoundingBox()
+            xMid = -0.5 * (geo.boundingBox.max.x - geo.boundingBox.min.x)
+            geo.translate(xMid, 0, 0)
+            textShape.fromGeometry(geo)
+            text = new THREE.Mesh(textShape, matLite)
+            let holeShapes = []
+            for(let i = 0, il = shapes.length; i < il; i++) {
+                let shape = shapes[i]
+                if(shape.holes && shape.holes.length > 0) {
+                    for(let j = 0, jl = shape.holes.length; j < jl; j++) {
+                        let hole = shape.holes[j]
+                        holeShapes.push(hole)
+                    }
+                }
+            }
+            shapes.push.apply(shapes, holeShapes)
+            let lineText = new THREE.Object3D()
+            for(let i = 0, il = shapes.length; i < il; ++i) {
+                let shape = shapes[i]
+                let points = shape.getPoints()
+                let geometry = new THREE.BufferGeometry().setFromPoints(points)
+                geometry.translate(xMid, 0, 0)
+                let lineMesh = new THREE.Line(geometry, matDark)
+                lineText.add(lineMesh)
+            }
+            scene.add(lineText)
+        })
+        window.onresize = function() {
+            camera.aspect = aspect
+            camera.updateProjectionMatrix()
+            renderer.setSize(innerWidth, innerHeight)
+        }
+
+        function render() {
+            requestAnimationFrame(render)
+            controls.update()
+            renderer.render(scene, camera)
+        }
+
+        render()
+    }
+
+    init()
+</script>
