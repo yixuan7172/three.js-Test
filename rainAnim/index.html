@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../assets/js/three.js"></script>
+    <script src="../assets/js/renderers/CanvasRenderer.js"></script>
+</head>
+<body>
+<script>
+    let camera, renderer, scene
+    let aspect = window.innerWidth / window.innerHeight
+
+    function init() {
+        scene = new THREE.Scene()
+        renderer = new THREE.CanvasRenderer()
+        renderer.setPixelRatio(window.devicePixelRatio)
+        renderer.setSize(window.innerWidth, wind.innerHeight)
+
+    }
+</script>
+</body>
+</html>
