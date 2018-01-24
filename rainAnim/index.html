@@ -5,6 +5,7 @@
     <title>Rain</title>
     <script src="../assets/js/three.js"></script>
     <script src="../assets/js/renderers/CanvasRenderer.js"></script>
+    <script src="../assets/js/physijs/physi.js"></script>
     <style>
         body {
             margin: 0;
@@ -13,6 +14,9 @@
 </head>
 <body>
 <script>
+    'use strict'
+    Physijs.scripts.worker = '../assets/js/physijs/physijs_worker.js'
+    Physijs.scripts.ammo = '../assets/js/physijs/ammo.js'
     let camera, renderer, scene, mesh
     let aspect = window.innerWidth / window.innerHeight
     let path     = './img/',
@@ -24,11 +28,12 @@
     let cubes = []
     let loader = new THREE.TextureLoader()
     let startPos = new THREE.Vector3(toRandom(-30, 30), toRandom(-10, 10) + 20, toRandom(-5, 5))
-    let speed       = [0.35, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-        rotateSpeed = [0.025, 0.05, 0.08, 0.02, 0.01, 0.06, 0.07, 0.75]
+    let speed       = [0.35, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],//下落速度
+        rotateSpeed = [0.025, 0.05, 0.08, 0.02, 0.01, 0.06, 0.07, 0.75]//旋转速度
 
     function init() {
-        scene = new THREE.Scene()
+        scene = new Physijs.Scene
+        scene.setGravity(new THREE.Vector3(0, -10, 0))
         scene.background = new THREE.Color(0xffffff)
         renderer = new THREE.WebGLRenderer({antialias: true})
         renderer.setPixelRatio(window.devicePixelRatio)
@@ -58,10 +63,18 @@
         drop()
     }
 
-    window.onresize = function() {
-        camera.aspect = aspect
-        camera.updateProjectionMatrix()
-        renderer.setSize(window.innerWidth, window.innerHeight)
+    function toRandom(min, max) {
+        if(max < min) return
+        return min + Math.random() * (max - min)
+    }
+
+    function drop() {
+        for(let i = 0; i < cubes.length; i++) {
+            cubes[i].rotation.x += rotateSpeed[~~Math.random() * 8]
+            cubes[i].rotation.y += rotateSpeed[~~Math.random() * 8]
+            cubes[i].position.y -= speed[~~Math.random() * 9]
+        }
+        resetState()
     }
 
     function resetState() {
@@ -79,20 +92,11 @@
         }
     }
 
-    function toRandom(min, max) {
-        if(max < min) return
-        return min + Math.random() * (max - min)
+    window.onresize = function() {
+        camera.aspect = aspect
+        camera.updateProjectionMatrix()
+        renderer.setSize(window.innerWidth, window.innerHeight)
     }
-
-    function drop() {
-        for(let i = 0; i < cubes.length; i++) {
-            cubes[i].rotation.x += rotateSpeed[~~Math.random() * 8]
-            cubes[i].rotation.y += rotateSpeed[~~Math.random() * 8]
-            cubes[i].position.y -= speed[~~Math.random() * 9]
-        }
-        resetState()
-    }
-
     init()
 </script>
 </body>
