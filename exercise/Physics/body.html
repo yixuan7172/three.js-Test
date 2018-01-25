@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>body</title>
+    <script src="../assets/js/three.min.js"></script>
+    <script src="../assets/js/libs/stats.min.js"></script>
+    <script src="../assets/js/physijs/physi.js"></script>
+</head>
+<body>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<script>
+    'use strict'
+    Physijs.scripts.worker = '../assets/js/physijs/physijs_worker.js'
+    Physijs.scripts.ammo = 'ammo.js'
+
+    let renderer, scene, camera
+    let stats, physice_stats
+    let boxes = [], box
+    let mousePosition
+    let aspect = innerWidth / innerHeight
+
+    function init() {
+        renderer = new THREE.WebGLRenderer({antialias: true})
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.shadowMap.enabled = true
+        document.body.appendChild(renderer.domElement)
+
+        stats = new Stats()
+        stats.domElement.style.position = 'absolute'
+        stats.domElement.style.top = '1px'
+        stats.domElement.style.zIndex = 1
+        stats.setMode(1)
+        document.body.appendChild(stats.domElement)
+
+        physice_stats = new Stats()
+        physice_stats.domElement.style.position = 'absolute'
+        physice_stats.domElement.style.top = '50px'
+        physice_stats.domElement.style.zIndex = 1
+        physice_stats.setMode(0)
+        document.body.appendChild(physice_stats.domElement)
+
+        scene = new Physijs.Scene
+        scene.setGravity(0, -30, 0)
+        scene.addEventListener('update', () => {
+            applyForce()
+            scene.simulate(undefined, 1)
+            physice_stats.update()
+        })
+
+        camera = new THREE.PerspectiveCamera(45, aspect, 1, 1000)
+        camera.position.set(60, 50, 60)
+        camera.lookAt(scene.position)
+
+        let light = new THREE.DirectionalLight(0xffffff)
+        light.position.set(20, 40, -15)
+        light.target.position.copy(scene.position)
+        light.castShadow = true
+        light.shadow.camera.left = -60
+        light.shadow.camera.top = -60
+        light.shadow.camera.right = 60
+        light.shadow.camera.bottom = 60
+        light.shadow.camera.near = 20
+        light.shadow.camera.far = 200
+        light.shadow.bias = -0.0001
+        light.shadow.mapSize.width = light.shadow.mapSize.height = 2048
+        scene.add(light)
+
+        let loader = new THREE.TextureLoader()
+        let ground_mat = Physijs.createMaterial(new THREE.MeshLambertMaterial({
+                map: loader.load('./rocks.jpg')
+            }), 0.8//high friction(摩擦力)
+            , 0.4//low restitution（还原张力）
+        )
+        ground_mat.map.wrapS = ground_mat.map.wrapT = THREE.RepeatWrapping
+        ground_mat.map.repeat.set(3, 3)
+
+        let box_mat = new Physijs.createMaterial(new THREE.MeshLambertMaterial({
+                map: loader.load('plywood.jpg')
+            }), 0.4// low friction
+            , 0.6// high restitution
+        )
+        box_mat.map.wrapS = box_mat.map.wrapT = THREE.RepeatWrapping
+        box_mat.map.repeat.set(0.25, 0.25)
+
+        let ground = new Physijs.BoxMesh(new THREE.BoxGeometry(100, 1, 100), ground_mat,
+            0//mass：质量
+        )
+        ground.receiveShadow = true
+        scene.add(ground)
+
+        for(let i = 0; i < 10; i++) {
+            box = new Physijs.BoxMesh(new THREE.BoxGeometry(4, 4, 4), box_mat, 1)
+            box.position.set(
+                Math.random() * 50 - 25,
+                Math.random() * 5 + 10,
+                Math.random() * 50 - 25
+            )
+            box.rotation.set(
+                Math.random() * Math.PI * 2,
+                Math.random() * Math.PI * 2,
+                Math.random() * Math.PI * 2
+            )
+            box.scale.set(
+                Math.random() + 0.5,
+                Math.random() + 0.5,
+                Math.random() + 0.5
+            )
+            box.castShadow = true
+            scene.add(box)
+            boxes.push(box)
+        }
+        renderer.domElement.addEventListener('mousemove', setMousePos)
+        render()
+        scene.simulate()
+    }
+
+    function setMousePos(e) {
+        let vec3 = new THREE.Vector3(
+            e.clientX / renderer.domElement.clientWidth * 2 - 1,
+            -(e.clientY / renderer.domElement.clientWidth * 2 - 1),
+            0.5
+        )
+        vec3.unproject(camera)
+        vec3.sub(camera.position).normalize()
+
+        let coefficient = (box.position.y - camera.position.y) / vec3.y
+        mousePosition = camera.position.clone().add(vec3.multiply(coefficient))
+    }
+
+    //作用力
+    function applyForce() {
+        if(!mousePosition) return
+        let strength = 35,//力
+            distance,
+            effect,
+            offset,
+            box
+        boxes.forEach(val => {
+            box = val
+            distance = mousePosition.distanceTo(box.position)
+            //multiplyScalar：相乘。
+            //negate:取反
+            effect = mousePosition.clone().sub(box.position).normalize().multiplyScalar(strength / distance).negate()
+            offset = mousePosition.clone().sub(box.position)
+            //applyImpulse:推动
+            box.applyImpulse(effect, offset)
+        })
+    }
+
+    function render() {
+        stats.update()
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+    }
+
+    init()
+</script>
+</body>
+</html>
