@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/dat.gui.min.js"></script>
+    <script src="../libs/stats.min.js"></script>
+</head>
+
+
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+
+</body>
+</html>
+<script>
+    let aspect = innerWidth / innerHeight
+    let renderer, camera, scene
+    let mouse = new THREE.Vector2()
+    let stats, sphereInter
+    let radius = 100, theta = 0
+    let raycaster, parentTransform
+    let currentIntersected
+
+    function init() {
+        stats = info()
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0xf0f0f0)
+        camera = new THREE.PerspectiveCamera(70, aspect, 1, 10000)
+        camera.lookAt(scene.position)
+        renderer = new THREE.WebGLRenderer({antialias: true})
+        document.body.appendChild(renderer.domElement)
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+
+        let geometry = new THREE.SphereGeometry(5, 100, 100)
+        let material = new THREE.MeshBasicMaterial({
+            color: 0xff0000
+        })
+        sphereInter = new THREE.Mesh(geometry, material)
+        sphereInter.visible = false
+        scene.add(sphereInter)
+
+        let geo = new THREE.Geometry()
+        let point = new THREE.Vector3()
+        let direction = new THREE.Vector3()
+        for (let i = 0; i < 50; i++) {
+            direction.x += Math.random() - .5
+            direction.y += Math.random() - .5
+            direction.z += Math.random() - .5;
+            direction.normalize().multiplyScalar(10)
+            point.add(direction)
+            geo.vertices.push(point.clone())
+        }
+        parentTransform = new THREE.Object3D()
+        parentTransform.position.set(Math.random() * 40 - 20,
+            Math.random() * 40 - 20, Math.random() * 40 - 20)
+        parentTransform.rotation.x =
+            parentTransform.rotation.y =
+                parentTransform.rotation.z = Math.random() * 2 * Math.PI
+        parentTransform.scale.set(Math.random() + .5,
+            Math.random() + .5, Math.random() + .5)
+        for (let i = 0; i < 50; i++) {
+            let obj
+            if (Math.random() > .5) {
+                obj = new THREE.Line(geo)
+            } else {
+                obj = new THREE.LineSegments(geo)
+            }
+            obj.position.set(Math.random() * 400 - 200,
+                Math.random() * 400 - 200, Math.random() * 400 - 200)
+            obj.rotation.set(Math.random() * 2 * Math.PI,
+                Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI)
+            obj.scale.set(Math.random() + .5,
+                Math.random() + .5, Math.random() + .5)
+            parentTransform.add(obj)
+        }
+        scene.add(parentTransform)
+        raycaster = new THREE.Raycaster()
+        //射线和Line对象相交的精度因子
+        raycaster.linePrecision = 3
+        window.onresize = function () {
+            camera.aspect = aspect
+            camera.updateProjectionMatrix()
+            renderer.setSize(innerWidth, innerHeight)
+        }
+        document.addEventListener('mousemove', onMouseMove, false)
+    }
+
+    function onMouseMove(e) {
+        e.preventDefault()
+        mouse.x = e.clientX / innerWidth * 2 - 1
+        mouse.y = -e.clientY / innerHeight * 2 + 1
+    }
+
+    function render() {
+        requestAnimationFrame(render)
+        stats.update()
+        renderer.render(scene, camera)
+
+        theta += .1
+        camera.position.set(radius * Math.sin(THREE.Math.degToRad(theta)),
+            radius * Math.sin(THREE.Math.degToRad(theta)),
+            radius * Math.cos(THREE.Math.degToRad(theta)))
+        camera.lookAt(scene.position)
+        camera.updateMatrixWorld()
+        raycaster.setFromCamera(mouse, camera)
+        let intersects = raycaster.intersectObjects(parentTransform.children, true)
+        if (intersects.length > 0) {
+            if (currentIntersected !== undefined) {
+                currentIntersected.material.linewidth = 1
+            }
+            currentIntersected = intersects[0].object
+            currentIntersected.material.linewidth = 5
+            sphereInter.visible = true
+            sphereInter.position.copy(intersects[0].point)
+        } else {
+            if (currentIntersected !== undefined) {
+                currentIntersected.material.linewidth = 1
+            }
+            currentIntersected = undefined
+            sphereInter.visible = false
+        }
+    }
+
+    function info() {
+        let stats = new Stats()
+        stats.setMode(0)
+        stats.domElement.style.position = 'absolute'
+        stats.domElement.style.top = '0'
+        stats.domElement.style.left = '0'
+        document.body.appendChild(stats.domElement)
+        return stats
+    }
+
+    init()
+    render()
+</script>
