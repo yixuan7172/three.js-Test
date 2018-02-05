@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/dat.gui.min.js"></script>
+    <script src="../libs/stats.min.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #fff;
+    }
+</style>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+</html>
+<script>
+    let camera, renderer, scene, stats
+    let aspect = innerWidth / innerHeight
+    let mesh, raycaster, mouse, line
+
+    function init() {
+        scene = new THREE.Scene()
+        camera = new THREE.PerspectiveCamera(45, aspect, 1, 10000)
+        camera.position.z = 3000
+        scene.fog = new THREE.Fog(0x050505, 2000, 3500)
+
+        let light1 = new THREE.DirectionalLight(0xffffff, 0.6)
+        light1.position.set(1, 1, 1)
+        scene.add(light1)
+
+        let light2 = new THREE.DirectionalLight(0xffffff, 1.5)
+        light2.position.set(0, -1, 0)
+        scene.add(light2)
+
+        let triangles = 5000
+        let geometry = new THREE.BufferGeometry()
+        let positions = new Float32Array(triangles * 3 * 3)
+        let normals = new Float32Array(triangles * 3 * 3)
+        let colors = new Float32Array(triangles * 3 * 3)
+        let color = new THREE.Color()
+        let n = 800, n2 = n / 2,
+            d = 120, d2 = d / 2
+        let pA = new THREE.Vector3()
+        let pB = new THREE.Vector3()
+        let pC = new THREE.Vector3()
+        let cb = new THREE.Vector3()
+        let ab = new THREE.Vector3()
+
+        for (let i = 0; i < positions.length; i++) {
+            let x = Math.random() * n - n2
+            let y = Math.random() * n - n2
+            let z = Math.random() * n - n2
+
+            let ax = Math.random() * n - n2
+            let ay = Math.random() * n - n2
+            let az = Math.random() * n - n2
+
+            let bx = Math.random() * n - n2
+            let by = Math.random() * n - n2
+            let bz = Math.random() * n - n2
+
+            let cx = Math.random() * n - n2
+            let cy = Math.random() * n - n2
+            let cz = Math.random() * n - n2
+
+            positions[i] = ax
+            positions[i + 1] = ay
+            positions[i + 2] = az
+
+            positions[i + 3] = bx
+            positions[i + 4] = by
+            positions[i + 5] = bz
+
+            positions[i + 6] = cx
+            positions[i + 7] = cy
+            positions[i + 8] = cz
+
+            pA.set(ax, ay, az)
+            pB.set(bx, by, bz)
+            pC.set(cx, cy, cz)
+
+            cb.subVectors(pC, pB)
+            ab.subVectors(pA, pB)
+            cb.cross(ab)
+            cb.normalize()
+
+            let nx = cb.x,
+                ny = cb.y,
+                nz = cb.z
+
+            normals[i] = nx
+            normals[i + 1] = ny
+            normals[i + 2] = nz
+
+            normals[i + 3] = nx
+            normals[i + 4] = ny
+            normals[i + 5] = nz
+
+            normals[i + 6] = nx
+            normals[i + 7] = ny
+            normals[i + 8] = nz
+
+            //colors
+            let vx = x / n + .5,
+                vy = y / n + .5,
+                vz = z / n + .5
+            color.setRGB(vx, vy, vz)
+            colors[i] = color.r
+            colors[i + 1] = color.g;
+            colors[i + 2] = color.b;
+            colors[i + 3] = color.r;
+            colors[i + 4] = color.g;
+            colors[i + 5] = color.b;
+            colors[i + 6] = color.r;
+            colors[i + 7] = color.g;
+            colors[i + 8] = color.b;
+        }
+        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3))
+        geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3))
+        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3))
+        geometry.computeBoundingSphere()
+
+        let material = new THREE.MeshPhongMaterial({
+            color: 0xaaaaaa,
+            specular: 0xffffff,
+            shininess: 250,
+            side: THREE.DoubleSide,
+            vertexColors: THREE.VertexColors
+        })
+        mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
+
+        raycaster = new THREE.Raycaster()
+        mouse = new THREE.Vector2()
+        let buffer_geometry = new THREE.BufferGeometry()
+        buffer_geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(4 * 3), 3))
+        let line_material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            linewidth: 2,
+            transparent: true
+        })
+        line = new THREE.Line(buffer_geometry, line_material)
+        scene.add(line)
+
+        renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('canvas'),
+            antialias: true
+        })
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+
+        stats = initStats()
+
+        document.addEventListener('mousemove', mouseMove, false)
+    }
+
+    function mouseMove(e) {
+        e.preventDefault()
+        mouse.x = e.clientX / innerWidth * 2 - 1
+        mouse.y = -e.clientY / innerHeight * 2 + 1
+        console.log(mouse.x + 'xxxxxxxxxxxxxx')
+        console.log(mouse.y + 'yyyyyyyyyyyyyy')
+    }
+
+    function render() {
+        requestAnimationFrame(render)
+        renderer.render(scene, camera)
+        stats.update()
+
+        let time = Date.now() * .001
+        mesh.rotation.x = time * 0.15
+        mesh.rotation.y = time * 0.25
+        raycaster.setFromCamera(mouse, camera)
+        let intersects = raycaster.intersectObject(mesh)
+        if (intersects.length > 0) {
+            let intersect = intersects[0]
+            let face = intersect.face
+            let linePosition = line.geometry.attributes.position
+            let meshPosition = mesh.geometry.attributes.position
+
+            linePosition.copyAt(0, meshPosition, face.a)
+            linePosition.copyAt(1, meshPosition, face.b)
+            linePosition.copyAt(2, meshPosition, face.c)
+            linePosition.copyAt(3, meshPosition, face.a)
+            mesh.updateMatrix()
+            line.geometry.applyMatrix(mesh.matrix)
+            line.visible = true
+        } else {
+            line.visible = false
+        }
+    }
+
+    function initStats() {
+        let stats = new Stats()
+        stats.domElement.style.position = 'absolute'
+        stats.domElement.style.top = '0'
+        stats.domElement.style.left = '0'
+        document.body.appendChild(stats.domElement)
+        return stats
+    }
+
+    init()
+    render()
+</script>
