@@ -62,19 +62,23 @@
         light.position.set(20, 40, -15)
         light.target.position.copy(scene.position)
         light.castShadow = true
+        //在范围外不计算阴影
         light.shadow.camera.left = -60
         light.shadow.camera.top = -60
         light.shadow.camera.right = 60
         light.shadow.camera.bottom = 60
-        light.shadow.camera.near = 20
+        light.shadow.camera.near = 10
         light.shadow.camera.far = 200
-        light.shadow.bias = -0.0001
+
+        light.shadow.bias = -0.001//阴影贴图的偏移
+        //阴影贴图宽度,单位像素,默认512
         light.shadow.mapSize.width = light.shadow.mapSize.height = 2048
+
         scene.add(light)
 
         let loader = new THREE.TextureLoader()
         let ground_mat = Physijs.createMaterial(new THREE.MeshLambertMaterial({
-                map: loader.load('./rocks.jpg')
+                map: loader.load('img/rocks.jpg')
             }), 0.8//high friction(摩擦力)
             , 0.4//low restitution（还原张力）
         )
@@ -82,7 +86,7 @@
         ground_mat.map.repeat.set(3, 3)
 
         let box_mat = new Physijs.createMaterial(new THREE.MeshLambertMaterial({
-                map: loader.load('plywood.jpg')
+                map: loader.load('img/plywood.jpg')
             }), 0.4// low friction
             , 0.6// high restitution
         )
@@ -129,8 +133,8 @@
         )
         vec3.unproject(camera)
         vec3.sub(camera.position).normalize()
-
         let coefficient = (box.position.y - camera.position.y) / vec3.y
+        //multiply：乘, vec3.x *= coefficient.x
         mousePosition = camera.position.clone().add(vec3.multiply(coefficient))
     }
 
