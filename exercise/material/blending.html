@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="../libs/three.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+</html>
+<script>
+    var camera, scene, renderer;
+    let aspect = innerWidth / innerHeight
+    let mapBg
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 10000)
+        camera.position.z = 1000
+
+        scene = new THREE.Scene()
+
+        let canvas = document.createElement('canvas')
+        let ctx = canvas.getContext('2d')
+        canvas.width = canvas.height = 128
+        ctx.fillStyle = '#ddd'
+        ctx.fillRect(0, 0, 128, 128)
+        ctx.fillStyle = '#555'
+        ctx.fillRect(0, 0, 64, 64)
+        ctx.fillStyle = '#999'
+        ctx.fillRect(32, 32, 32, 32)
+        ctx.fillStyle = '#555'
+        ctx.fillRect(64, 64, 64, 64)
+        ctx.fillStyle = '#777'
+        ctx.fillRect(96, 96, 32, 32)
+
+        mapBg = new THREE.Texture(canvas)
+        mapBg.wrapS = mapBg.wrapT = THREE.RepeatWrapping
+        mapBg.repeat.set(128, 64)
+        mapBg.needsUpdate = true
+
+        let materialBg = new THREE.MeshBasicMaterial({
+            map: mapBg
+        })
+        let meshBg = new THREE.Mesh(new THREE.PlaneBufferGeometry(4000, 2000), materialBg)
+        meshBg.position.z = -1
+        scene.add(meshBg)
+
+        let loader = new THREE.TextureLoader()
+        let blendings = ['NoBlending', 'NormalBlending', 'AdditiveBlending',
+            'SubtractiveBlending', 'MultiplyBlending']
+        let map0 = loader.load('../assets/textures/UV_Grid_Sm.jpg'),
+            map1 = loader.load('../assets/textures/sprite0.jpg'),
+            map2 = loader.load('../assets/textures/sprite0.png'),
+            map3 = loader.load('../assets/textures/lensflare/lensflare0.png'),
+            map4 = loader.load('../assets/textures/lensflare/lensflare0_alpha.png')
+
+        let geo1 = new THREE.PlaneBufferGeometry(100, 100),
+            geo2 = new THREE.PlaneBufferGeometry(100, 25)
+        addImageRow(map0, 300)
+        addImageRow(map1, 150)
+        addImageRow(map2, 0)
+        addImageRow(map3, -150)
+        addImageRow(map4, -300)
+
+        function addImageRow(map, y) {
+            for(let i = 0; i < blendings.length; i++) {
+                let blending = blendings[i]
+                let material = new THREE.MeshBasicMaterial({
+                    map: map,
+                    transparent: true,
+                    blending: THREE[blending]
+                })
+                let x = (i - blendings.length / 2) * 110
+                let z = 0
+                let mesh = new THREE.Mesh(geo1, material)
+                mesh.position.set(x, y, z)
+                scene.add(mesh)
+
+                mesh = new THREE.Mesh(geo2, generateLabelMaterial(blending.replace('Blending', '')))
+                mesh.position.set(x, y - 75, z)
+                scene.add(mesh)
+            }
+        }
+
+        renderer = new THREE.WebGLRenderer()
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        document.body.appendChild(renderer.domElement)
+
+        animate()
+    }
+
+    function generateLabelMaterial(text) {
+        let x = document.createElement('canvas')
+        let ctx = x.getContext('2d')
+        x.width = 128
+        x.width = 32
+        ctx.fillStyle = 'rgba(0,0,0,0.95)'
+        ctx.fillRect(0, 0, 128, 32)
+        ctx.fillStyle = 'white'
+        ctx.font = '12pt arial bold'
+        ctx.fillText(text, 10, 22)
+        let map = new THREE.Texture(x)
+        map.needsUpdate = true
+        return new THREE.MeshBasicMaterial({
+            map: map,
+            transparent: true
+        })
+    }
+
+    function render() {
+        let time = Date.now() * 0.00025
+        let ox = (time * -0.01 * mapBg.repeat.x) % 1
+        let oy = (time * -0.01 * mapBg.repeat.y) % 1
+        mapBg.offset.set(ox, oy)
+        renderer.render(scene, camera)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        render()
+    }
+
+    init()
+</script>

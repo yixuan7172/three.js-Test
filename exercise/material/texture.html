@@ -6,18 +6,22 @@
     <script src="../libs/three.js"></script>
     <script src="../libs/DDSLoader.js"></script>
 </head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
 <body>
 
 </body>
 </html>
 <script>
-    let camera, renderer, scene, stats
+    let camera, renderer, scene
     let aspect = innerWidth / innerHeight
     let meshes = []
-    let mesh
 
     function init() {
-        stats = initStats()
         scene = new THREE.Scene()
         scene.background = new THREE.Color(0x252535)
 
@@ -26,7 +30,7 @@
         renderer.setPixelRatio(devicePixelRatio)
         document.body.appendChild(renderer.domElement)
 
-        camera = new THREE.PerspectiveCamera(75, aspect, 1, 10000)
+        camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 10000)
         camera.position.z = 1000
 
         let loader = new THREE.DDSLoader()
@@ -113,7 +117,7 @@
             material8 = new THREE.MeshBasicMaterial({
                 map: map6
             })
-        mesh = new THREE.Mesh(new THREE.TorusGeometry(100, 50, 32, 16), material1)
+        let mesh = new THREE.Mesh(new THREE.TorusGeometry(100, 50, 32, 16), material1)
         mesh.position.x = -600
         mesh.position.y = -200
         scene.add(mesh)
@@ -174,23 +178,14 @@
         let t = Date.now() * 0.001
         for(let i = 0; i < meshes.length; i++) {
             let m = meshes[i]
-            m.position.x = t
-            m.position.y = t
+            m.rotation.x = t
+            m.rotation.y = t
         }
     }
 
     function animate() {
         requestAnimationFrame(animate)
         render()
-    }
-
-    function initStats() {
-        // let stats = new Stats()
-        // stats.domElement.style.position = 'absolute'
-        // stats.domElement.style.top = '0'
-        // stats.domElement.style.left = '0'
-        // document.body.appendChild(stats.domElement)
-        // return stats
     }
 
     init()
