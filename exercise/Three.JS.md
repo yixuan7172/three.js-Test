@@ -14,6 +14,7 @@
     * dynamicDampingFactor 阻尼，值越小，惯性越大
 
   # texture
+    * needsUpdate  当设置为true时,标记文理已经更新。
     * minFilter   纹理在缩小时的过滤方式,THREE.LinearMipMapNearestFilter选择最临近的mip层，并执行线性过滤。
     * magFilter   纹理在放大时的过滤方式,THREE.LinearFilter在纹理基层上执行线性过滤。
     * anisotropy  各向异性过滤，让纹理的效果更好，但会消耗更多的内存、CPU、GPU。
@@ -42,3 +43,12 @@
     * alphaTest  alpha测试,取值范围0.0-1.0
     * overdraw  当三角面之间产生间距,发生图形走样时,填充像素,确保图形保真,消除走样.通常取值范围在0.0=1.0之间
     * needsUpdate  设置该值为true后，如果材质发生改变，就会使用新的材质刷新它的缓存。
+
+  # geometry
+    * vertices  Geometry对象顶点位置存放在vertices属性中，若要更新this.vertices属性,需要将 Geometry.verticesNeedUpdat设置为true。
+    * faces  将Geometry对象的三角面存放在faces属性中，如果要更新this.faces属性,需要将Geometry.elementsNeedUpdate 设置为true。
+    * faceVertexUvs 二维数组，将Geometry对象的三角面的uv层存放在this.faceVertexUvs属性中，如果要更新this.faceVertexUvs的值,需要将Geometry.uvsNeedUpdate属性设置为true。
+    * colors  根据索引的顺序一对一的保存顶点颜色,用于点和线，如果要更新this.colors属性需要将Geometry.colorsNeedUpdate设置为true。
+    * materialIndex  材质索引号
+
+
