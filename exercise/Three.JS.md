@@ -16,10 +16,8 @@
   ## texture
     * needsUpdate  当设置为true时,标记文理已经更新。
     * format 像素数据的颜色格式,默认为THREE.RGBAFormat。还有以下可选参数：THREE.AlphaFormat，THREE.RGBFormat，THREE.LuminanceFormat，THREE.LuminanceAlphaFormat。
-          ![formate](/imgs/format.png)
-          ![huihut](http://upload-images.jianshu.io/upload_images/4994492-7dda0710288c0db8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-        ![谷歌][1]
-        [1]: https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_120x44dp.png "Google"
+    * ![formate](https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png)
+    * ![huihut](http://upload-images.jianshu.io/upload_images/4994492-7dda0710288c0db8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 
     * minFilter   纹理在缩小时的过滤方式,THREE.LinearMipMapNearestFilter选择最临近的mip层，并执行线性过滤。
