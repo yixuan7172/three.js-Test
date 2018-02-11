@@ -1,20 +1,24 @@
 # Three.js 记录
   * 依赖three.js的脚本，必须放在three.js之后
-  #Renderer
+  ## Renderer
     * renderer.shadowMap.type = THREE.PCFShadowMap 阴影映射类型
 
-  #light
+  ## light
     * light.bias 减少阴影偏差
 
-  # DDSLoader
+  ## DDSLoader
     *
 
-  # TrackballControls
+  ## TrackballControls
     * staticMoving 阻尼开关，true表示关闭
     * dynamicDampingFactor 阻尼，值越小，惯性越大
 
-  # texture
+  ## texture
     * needsUpdate  当设置为true时,标记文理已经更新。
+    * format 像素数据的颜色格式,默认为THREE.RGBAFormat。还有以下可选参数：THREE.AlphaFormat，THREE.RGBFormat，THREE.LuminanceFormat，THREE.LuminanceAlphaFormat。
+        <div  align="center">
+          ![]('imgs/format.png')
+        </div>
     * minFilter   纹理在缩小时的过滤方式,THREE.LinearMipMapNearestFilter选择最临近的mip层，并执行线性过滤。
     * magFilter   纹理在放大时的过滤方式,THREE.LinearFilter在纹理基层上执行线性过滤。
     * anisotropy  各向异性过滤，让纹理的效果更好，但会消耗更多的内存、CPU、GPU。
@@ -30,7 +34,7 @@
                      那张原始片计算出来的图片效果要好得多，速度也更快。
     * wrapS、wrapsT  S、T方向覆盖模式,默认为THREE.ClampToEdgeWrapping,(夹取),超过1.0的值被固定为1.0。超过1.0的其它地方的纹理，沿用最后像素的纹理。用于当叠加过滤时，需要从0.0到1.0精确覆盖且没有模糊边界的纹理。
                      还有THREE.RepeatWrapping(重复)和THREE.MirroredRepeatWrapping(镜像).
-  # material
+  ## material
     * map 普通贴图
     * envMap 环境贴图
     * lightMap 光照贴图
@@ -44,7 +48,7 @@
     * overdraw  当三角面之间产生间距,发生图形走样时,填充像素,确保图形保真,消除走样.通常取值范围在0.0=1.0之间
     * needsUpdate  设置该值为true后，如果材质发生改变，就会使用新的材质刷新它的缓存。
 
-  # geometry
+  ## geometry
     * vertices  Geometry对象顶点位置存放在vertices属性中，若要更新this.vertices属性,需要将 Geometry.verticesNeedUpdat设置为true。
     * faces  将Geometry对象的三角面存放在faces属性中，如果要更新this.faces属性,需要将Geometry.elementsNeedUpdate 设置为true。
     * faceVertexUvs 二维数组，将Geometry对象的三角面的uv层存放在this.faceVertexUvs属性中，如果要更新this.faceVertexUvs的值,需要将Geometry.uvsNeedUpdate属性设置为true。
