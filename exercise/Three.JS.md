@@ -18,11 +18,11 @@
     * format 像素数据的颜色格式,默认为THREE.RGBAFormat。还有以下可选参数：THREE.AlphaFormat，THREE.RGBFormat，THREE.LuminanceFormat，THREE.LuminanceAlphaFormat。
    # ![format.png](https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png)
 
-    ### minFilter 和 magFilter  纹理缩小或放大时的过滤方式 </br>
+   ### minFilter 和 magFilter  纹理缩小或放大时的过滤方式 </br>
       THREE.NearestFilter:最邻进过滤，将纹理上最近的像素应用于面上。放大时，会导致方块化；缩小时，会丢失细节。
-      THREE.LinearFilter:线性过滤，最终的颜色由周围四个像素值来决定。虽然在缩小时会丢失部分细节，但在放大时会平滑很多。</br>
-      THREE.NearestMipMapNearestFilter:选择最邻近的mip层，并执行THREE.NearestFilter。虽然放大时会有方块化，但缩小时会好很多。</br>
-      THREE.NearestMipMapLinearFilter:选择最邻近的两个mip层，分别执行THREE.NearestFilter获取两个中间值，再传到THREE.LinearFilter获取最终值。</br>
+      THREE.LinearFilter:线性过滤，最终的颜色由周围四个像素值来决定。虽然在缩小时会丢失部分细节，但在放大时会平滑很多。
+      THREE.NearestMipMapNearestFilter:选择最邻近的mip层，并执行THREE.NearestFilter。虽然放大时会有方块化，但缩小时会好很多。
+      THREE.NearestMipMapLinearFilter:选择最邻近的两个mip层，分别执行THREE.NearestFilter获取两个中间值，再传到THREE.LinearFilter获取最终值。
       
 
     * anisotropy  各向异性过滤，让纹理的效果更好，但会消耗更多的内存、CPU、GPU。
