@@ -21,7 +21,7 @@
     　　<img src=https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png />
     </div>
     
-    ![format.png](http://upload-images.jianshu.io/upload_images/6814139-f9b23dda78a3393a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+    ![format.png](https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png)
 
     * minFilter   纹理在缩小时的过滤方式,THREE.LinearMipMapNearestFilter选择最临近的mip层，并执行线性过滤。
     * magFilter   纹理在放大时的过滤方式,THREE.LinearFilter在纹理基层上执行线性过滤。
