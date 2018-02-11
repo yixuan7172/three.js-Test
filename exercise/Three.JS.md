@@ -16,8 +16,7 @@
   ## texture
     * needsUpdate  当设置为true时,标记文理已经更新。
     * format 像素数据的颜色格式,默认为THREE.RGBAFormat。还有以下可选参数：THREE.AlphaFormat，THREE.RGBFormat，THREE.LuminanceFormat，THREE.LuminanceAlphaFormat。
-    # 
-     ![format.png](https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png)
+    ### ![format.png](https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png)
     * minFilter   纹理在缩小时的过滤方式,THREE.LinearMipMapNearestFilter选择最临近的mip层，并执行线性过滤。
     * magFilter   纹理在放大时的过滤方式,THREE.LinearFilter在纹理基层上执行线性过滤。
     * anisotropy  各向异性过滤，让纹理的效果更好，但会消耗更多的内存、CPU、GPU。
