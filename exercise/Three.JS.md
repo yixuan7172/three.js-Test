@@ -17,7 +17,7 @@
     * needsUpdate  当设置为true时,标记文理已经更新。
     * format 像素数据的颜色格式,默认为THREE.RGBAFormat。还有以下可选参数：THREE.AlphaFormat，THREE.RGBFormat，THREE.LuminanceFormat，THREE.LuminanceAlphaFormat。
         <div  align="center">
-          ![]('imgs/format.png')
+          ![](imgs/format.png)
         </div>
     * minFilter   纹理在缩小时的过滤方式,THREE.LinearMipMapNearestFilter选择最临近的mip层，并执行线性过滤。
     * magFilter   纹理在放大时的过滤方式,THREE.LinearFilter在纹理基层上执行线性过滤。
