@@ -1,4 +1,5 @@
 # Three.js 记录
+![format.png](https://raw.githubusercontent.com/yixuan7172/three.js-test/master/exercise/imgs/format.png)
   * 依赖three.js的脚本，必须放在three.js之后
   ## Renderer
     * renderer.shadowMap.type = THREE.PCFShadowMap 阴影映射类型
