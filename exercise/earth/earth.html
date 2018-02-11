@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+</html>
+<script>
+    let scene, camera, renderer, earth
+
+    function init() {
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0x252525)
+
+        camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 5000)
+        camera.position.z = 100
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            canvas: document.getElementById('canvas')
+        })
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.shadowMap.enabled = true
+
+        let spotLight = new THREE.SpotLight(0xffffff)
+        spotLight.position.set(100, 100, 100)
+        spotLight.castShadow = true
+        spotLight.shadow.mapSize.width = 1024
+        spotLight.shadow.mapSize.height = 1024
+        spotLight.shadow.camera.far = 4000
+        spotLight.shadow.camera.near = 500
+        scene.add(spotLight)
+
+        let geometry = new THREE.SphereGeometry(50, 20, 20)
+        earth = new THREE.Mesh(geometry, createMaterial())
+        scene.add(earth)
+
+        animate()
+    }
+
+    function createMaterial() {
+        let material = new THREE.MeshPhongMaterial({
+            color: new THREE.Color('rgb(35,35,213)'),
+            emissive: new THREE.Color('rgb(64,128,255)'),
+            specular: new THREE.Color('rgb(93,195,255)'),
+            shininess: 1,
+            flatShading: THREE.FlatShading,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        })
+        return material
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        earth.rotation.x += 0.001
+        earth.rotation.y += 0.001
+        renderer.render(scene, camera)
+    }
+
+    init()
+</script>
