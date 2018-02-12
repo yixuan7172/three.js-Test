@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/OrbitControls.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+<script>
+    var radiusUnits = 1790; // 179000000
+    var container;
+    var camera, scene, renderer;
+    var cross;
+    var plane;
+    var controls;
+    var cube;
+    var cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, vertexColors: THREE.VertexColors});
+    init();
+    animate();
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 3500000);
+        controls = new THREE.OrbitControls(camera);
+        controls.autoRotate = 0.1
+        camera.position.set(2000, 2000, 2000);
+        camera.position.z = 500;
+        scene = new THREE.Scene();
+
+        var texture = new THREE.TextureLoader().load('http://i.imgur.com/qDAEVoo.jpg');
+        var material = new THREE.MeshBasicMaterial({
+            color: 0xFFFFFF,
+            map: texture,
+            opacity: 1
+        });
+
+        var material1 = new THREE.MeshBasicMaterial({color: 0xFF0000, wireframe: true, opacity: 1});
+        var geometry = new THREE.SphereGeometry(radiusUnits, 32, 32);
+        var geometry1 = new THREE.SphereGeometry(radiusUnits, 32, 32);
+        var mesh = new THREE.Mesh(geometry, material);
+        var mesh1 = new THREE.Mesh(geometry1, material1);
+        mesh1.position.set(0, 1000, 0);
+        mesh.position.set(0, -1000, 0);
+
+        scene.add(mesh);
+        scene.add(mesh1);
+
+        renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, logarithmicDepthBuffer: true});
+
+        document.body.appendChild(renderer.domElement);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function onWindowResize() {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        render();
+    }
+
+    function animate() {
+        controls.update();
+        requestAnimationFrame(animate);
+    }
+
+    window.requestAnimFrame = (function() {
+        return window.requestAnimationFrame ||
+               window.webkitRequestAnimationFrame ||
+               window.mozRequestAnimationFrame ||
+               window.oRequestAnimationFrame ||
+               window.msRequestAnimationFrame ||
+               function(callback) {
+                   window.setTimeout(callback, 1000 / 60);
+               };
+    })();
+
+    (function animloop() {
+        requestAnimFrame(animloop);
+        render();
+    })();
+
+    function render() {
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>

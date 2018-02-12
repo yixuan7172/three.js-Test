@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/dat.gui.min.js"></script>
+    <script src="../libs/OrbitControls.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+</body>
+</html>
+<script>
+    let camera, cameraCube, renderer, scene, controls
+    let aspect = innerWidth / innerHeight
+    let sceneCube
+    let textureCube, textureEquirect, textureSphere
+    let cubeMesh, sphereMesh, sphereMaterial
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 100000)
+        camera.position.z = 1000
+
+        cameraCube = new THREE.PerspectiveCamera(70, aspect, 0.1, 100000)
+        controls = new THREE.OrbitControls(camera)
+        controls.minDistance = 500
+        controls.maxDistance = 2500
+
+        scene = new THREE.Scene()
+        sceneCube = new THREE.Scene()
+
+        let ambient = new THREE.AmbientLight(0xffffff)
+        scene.add(ambient)
+
+        let r = '../assets/textures/cube/Bridge2/'
+        let urls = [
+            r + 'posx.jpg', r + 'negx.jpg',
+            r + 'posy.jpg', r + 'negy.jpg',
+            r + 'posz.jpg', r + 'negz.jpg'
+        ]
+        textureCube = new THREE.CubeTextureLoader().load(urls)
+        textureCube.format = THREE.RGBFormat
+        //立方体反射映射
+        textureCube.mapping = THREE.CubeReflectionMapping
+
+        let textureLoader = new THREE.TextureLoader()
+
+        textureEquirect = textureLoader.load('../assets/textures/2294472375_24a3b8ef46_o.jpg')
+        textureEquirect.mapping = THREE.EquirectangularReflectionMapping
+        textureEquirect.magFilter = THREE.LinearFilter
+        textureEquirect.minFilter = THREE.LinearMipMapLinearFilter
+
+        textureSphere = textureLoader.load('../assets/textures/metal.jpg')
+        textureSphere.mapping = THREE.SphericalReflectionMapping
+
+        let equirecShader = THREE.ShaderLib['equirect']
+        let equirectMaterial = new THREE.ShaderMaterial({
+            fragmentShader: equirecShader.fragmentShader,
+            vertexShader: equirecShader.vertexShader,
+            uniforms: equirecShader.uniforms,
+            depthWrite: false,
+            side: THREE.BackSide
+        })
+        equirectMaterial.uniforms['tEquirect'].value = textureEquirect
+
+        let cubeShader = THREE.ShaderLib['cube']
+        let cubeMaterial = new THREE.ShaderMaterial({
+            fragmentShader: cubeShader.fragmentShader,
+            vertexShader: cubeShader.vertexShader,
+            uniforms: cubeShader.uniforms,
+            depthWrite: false,
+            side: THREE.BackSide
+        })
+        cubeMaterial.uniforms['tCube'].value = textureCube
+
+        //skybox
+        cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(100, 100, 100), cubeMaterial)
+        sceneCube.add(cubeMesh)
+
+        let geometry = new THREE.SphereGeometry(200, 48, 24)
+        sphereMaterial = new THREE.MeshLambertMaterial({
+            envMap: textureCube
+        })
+        sphereMesh = new THREE.Mesh(geometry, sphereMaterial)
+        scene.add(sphereMesh)
+
+        renderer = new THREE.WebGLRenderer()
+        renderer.autoClear = false//
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setFaceCulling(THREE.CullFaceNone)//
+        document.body.appendChild(renderer.domElement)
+
+        let params = {
+            Cube: function() {
+                cubeMesh.material = cubeMaterial
+                cubeMesh.visible = true
+                sphereMaterial.envMap = textureCube
+                sphereMaterial.needsUpdate = true
+            },
+            Equirectangular: function() {
+                cubeMesh.material = equirectMaterial
+                cubeMesh.visible = true
+                sphereMaterial.envMap = textureEquirect
+                sphereMaterial.needsUpdate = true
+            },
+            Spherical: function() {
+                cubeMesh.visible = false
+                sphereMaterial.envMap = textureSphere
+                sphereMaterial.needsUpdate = true
+            },
+            Refraction: false
+        }
+
+        let gui = new dat.GUI()
+        gui.add(params, 'Cube')
+        gui.add(params, 'Equirectangular')
+        gui.add(params, 'Spherical')
+        gui.add(params, 'Refraction').onChange(val => {
+            if(val) {
+                textureEquirect.mapping = THREE.EquirectangularRefractionMapping
+                textureCube.mapping = THREE.CubeRefractionMapping
+            } else {
+                textureEquirect.mapping = THREE.EquirectangularReflectionMapping
+                textureCube.mapping = THREE.CubeReflectionMapping
+            }
+            sphereMaterial.needsUpdate = true
+        })
+        gui.open()
+
+        animate()
+    }
+
+    function render() {
+        camera.lookAt(scene.position)
+        cameraCube.rotation.copy(camera.rotation)
+        renderer.render(sceneCube, cameraCube)
+        renderer.render(scene, camera)
+    }
+
+    function animate() {
+        window.requestAnimationFrame(animate)
+        render()
+        controls.update()
+    }
+
+    init()
+</script>
