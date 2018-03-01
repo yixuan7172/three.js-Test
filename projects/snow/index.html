@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/three.js"></script>
+    <script src="js/Projector.js"></script>
+    <script src="js/Snow.js"></script>
+    <script src="js/CanvasRenderer.js"></script>
+</head>
+<style>
+    body {
+        margin: 0px;
+        overflow: hidden;
+    }
+</style>
+<body>
+
+</body>
+</html>
+<script>
+    let particle, particles = []
+    let scene, renderer, camera
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 1, 10000)
+        camera.position.z = 1000
+
+        scene = new THREE.Scene()
+
+        renderer = new THREE.CanvasRenderer()
+        renderer.setSize(innerWidth, innerHeight)
+
+        let material = new THREE.PointsMaterial({
+            map: new THREE.TextureLoader().load('./img/snow.png')
+        })
+
+        for (let i = 0; i < 500; i++) {
+            particle = new Particle3D(material)
+            particle.position.x = Math.random() * 2000 - 1000
+            particle.position.y = Math.random() * 2000 - 1000
+            particle.position.z = Math.random() * 2000 - 1000
+            particle.scale.x = particle.scale.y = 10
+            scene.add(particle)
+            particles.push(particle)
+        }
+        document.body.appendChild(renderer.domElement)
+        animate()
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        for (let i = 0; i < particles.length; i++) {
+            let particle = particles[i]
+            particle.updatePhysics()
+            if (particle.position.y < -1000) particle.position.y += 2000
+            if (particle.position.x > 1000) particle.position.x -= 2000
+            else if (particle.position.x < -1000) particle.position.x += 2000
+            else if (particle.position.z < -1000) particle.position.z += 2000
+
+        }
+        camera.lookAt(scene.position)
+        renderer.render(scene, camera)
+    }
+
+    init()
+</script>
