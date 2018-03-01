@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/stats.min.js"></script>
+    <script src="../libs/tween.min.js"></script>
+    <script src="../libs/CanvasRenderer.js"></script>
+    <script src="../libs/Projector.js"></script>
+</head>
+<body>
+</body>
+</html>
+<script>
+    let camera, renderer, stats, scene
+    let mouseX = 0, mouseY = 0
+    let aspect = window.innerWidth / window.innerHeight
+    let particle
+    let windowHalfX = window.innerHeight / 2,
+        windowHalfY = window.innerHeight / 2
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(45, aspect, 1, 10000)
+        camera.position.z = 1000
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0x000040)
+
+        let material = new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(generateSprite()),
+            blending: THREE.AdditiveBlending
+        })
+        for(let i = 0; i < 1000; i++) {
+            particle = new THREE.Sprite(material)
+            initParticle(particle, i * 10)
+            scene.add(particle)
+        }
+        renderer = new THREE.CanvasRenderer()
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        document.body.appendChild(renderer.domElement)
+
+        stats = initStats()
+        animate()
+    }
+
+    function generateSprite() {
+        let canvas = document.createElement('canvas')
+        canvas.width = canvas.height = 16
+        let context = canvas.getContext('2d')
+        let gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width /
+                                                                                            2, canvas.height /
+                                                                                               2, canvas.width / 2)
+        gradient.addColorStop(0, 'rgba(255,255,255,1)')
+        gradient.addColorStop(0.2, 'rgba(0,255,255,1)')
+        gradient.addColorStop(0.4, 'rgba(0,0,64,1)')
+        gradient.addColorStop(1, 'rgba(0,0,0,1)')
+
+        context.fillStyle = gradient
+        context.fillRect(0, 0, canvas.width, canvas.height)
+        return canvas
+    }
+
+    function initParticle(particle, delay1) {
+        let particle2 = this instanceof THREE.Sprite ? this : particle
+        let delay = delay1 !== undefined ? delay1 : 0
+        particle2.position.set(0, 0, 0)
+        particle2.scale.x = particle2.scale.y = Math.random() * 32 + 16
+        new TWEEN.Tween(particle2)
+            .delay(delay)
+            .to({}, 1e4)
+            .onComplete(initParticle)
+            .start()
+        new TWEEN.Tween(particle2.position)
+            .delay(delay)
+            .to({x: Math.random() * 4000 - 2000, y: Math.random() * 1000 - 500, z: Math.random() * 4000 - 2000}, 1e4)
+            .start()
+        new TWEEN.Tween(particle2.scale)
+            .delay(delay)
+            .to({x: 0.01, y: 0.01}, 1e4)
+            .start()
+    }
+
+    function render() {
+        TWEEN.update()
+        renderer.render(scene, camera)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        render()
+        stats.update()
+    }
+
+    function initStats() {
+        let stats = new Stats()
+        stats.domElement.style.position = 'absolute'
+        stats.domElement.style.top = '0px'
+        stats.domElement.style.left = '0px'
+        document.body.appendChild(stats.domElement)
+        return stats
+    }
+
+    init()
+</script>
