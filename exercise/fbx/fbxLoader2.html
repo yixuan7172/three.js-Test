@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/FBXLoader.js"></script>
+    <script src="../libs/OrbitControls.js"></script>
+    <script src="../libs/NURBSCurve.js"></script>
+    <script src="../libs/NURBSUtils.js"></script>
+</head>
+<style>
+    body{
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+
+</body>
+</html>
+<script>
+    function init() {
+        let camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, .1, 2000)
+        camera.position.set(2, 20, 28)
+        let controls = new THREE.OrbitControls(camera)
+        controls.target.set(0, 12, 0)
+        controls.update()
+
+        let scene = new THREE.Scene()
+        let light = new THREE.HemisphereLight(0xffffff, 0x444444)
+        light.position.set(0, 1, 0)
+        scene.add(light)
+        let light2 = new THREE.DirectionalLight(0xffffff)
+        light2.position.set(0, 1, 0)
+        scene.add(light2)
+
+        let gridHelper = new THREE.GridHelper(28, 28, 0x303030, 0x303030)
+        scene.add(gridHelper)
+
+        let loader = new THREE.FBXLoader()
+        loader.load('../assets/models/fbx/nurbs.fbx', function(object) {
+            scene.add(object)
+            console.log(object)
+        })
+
+        let renderer = new THREE.WebGLRenderer()
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        document.body.appendChild(renderer.domElement)
+
+        window.addEventListener('resize', function() {
+            renderer.setSize(innerWidth, innerHeight)
+            camera.aspect = innerWidth / innerHeight
+            camera.updateProjectionMatrix()
+        }, false)
+
+        function animate() {
+            renderer.render(scene, camera)
+            requestAnimationFrame(animate)
+        }
+        animate()
+    }
+
+    init()
+</script>

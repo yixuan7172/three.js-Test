@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/FBXLoader.js"></script>
+    <script src="../libs/OrbitControls.js"></script>
+</head>
+<body>
+
+</body>
+</html>
+<script>
+    let camera, scene, renderer
+    let aspect = innerWidth / innerHeight
+    let controls, light
+    let mixers = []
+    let clock = new THREE.Clock()
+    let loader = new THREE.FBXLoader()
+
+    class App {
+        constructor() {
+            camera = new THREE.PerspectiveCamera(70, aspect, 0.1, 4000)
+            camera.position.z = 300
+            camera.position.y = 200
+
+            controls = new THREE.OrbitControls(camera)
+            controls.target.set(0, 100, 0)
+            controls.update()
+
+            scene = new THREE.Scene()
+            scene.background = new THREE.Color(0xa0a0a0)
+            scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000)
+
+            light = new THREE.HemisphereLight(0xffffff, 0x444444)
+            light.position.set(0, 200, 0)
+            scene.add(light)
+
+            light = new THREE.DirectionalLight(0xffffff)
+            light.position.set(0, 200, 100)
+            light.castShadow = true
+            light.shadow.camera.top = 180
+            light.shadow.camera.botttom = -100
+            light.shadow.camera.left = -120
+            light.shadow.camera.right = 120
+            scene.add(light)
+
+            let mesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(2000, 2000),
+                new THREE.MeshPhongMaterial({
+                    color: 0x999999,
+                    depthWrite: false
+                })
+            )
+            mesh.rotation.x = -Math.PI / 2
+            mesh.receiveShadow = true
+            scene.add(mesh)
+
+            let grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000)
+            grid.material.opacity = 0.2
+            grid.material.transparent = true
+            scene.add(grid)
+
+            let url = '../assets/models/fbx/Samba Dancing.fbx'
+            this.loadFBX(url)
+
+            renderer = new THREE.WebGLRenderer()
+            renderer.setPixelRatio(devicePixelRatio)
+            renderer.setSize(innerWidth, innerHeight)
+            renderer.shadowMap.enabled = true
+            document.body.appendChild(renderer.domElement)
+
+            window.addEventListener('resize', function() {
+                renderer.setSize(innerWidth, innerHeight)
+                camera.aspect = aspect
+                camera.updateProjectionMatrix()
+            }, false)
+
+            this.animate()
+        }
+
+        animate() {
+            requestAnimationFrame(this.animate.bind(this))
+            renderer.render(scene, camera)
+
+            if(mixers.length) {
+                mixers.forEach(val => {
+                    val.update(clock.getDelta())
+                })
+            }
+        }
+
+        loadFBX(url) {
+            new THREE.FBXLoader().load(url, function(object) {
+                object.mixer = new THREE.AnimationMixer(object)
+                mixers.push(object.mixer)
+                let action = object.mixer.clipAction(object.animations[0])
+                action.play()
+                object.traverse(child => {
+                    console.log(child)
+                    if(child.isMesh) {
+                        child.castShadow = true
+                        child.receiveShadow = true
+                    }
+                })
+                scene.add(object)
+            })
+        }
+    }
+
+    new App()
+</script>
