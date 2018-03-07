@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../libs/three.js"></script>
+    <style>
+        body{
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body onload="init()">
+</body>
+</html>
+<script>
+    function init() {
+        let camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .1, 2000)
+        camera.position.z = 10
+        let clock = new THREE.Clock()
+        let scene = new THREE.Scene()
+        scene.fog = new THREE.FogExp2(0x000000, .035)
+        let mixer = new THREE.AnimationMixer(scene)
+        console.log(mixer)
+        let loader = new THREE.JSONLoader()
+        loader.load('../../assets/models/animated/monster/monster.js', (geometry, materials) => {
+            console.log('geo::' + geometry, 'mat::' + materials)
+            let mat = materials[0]
+            mat.morphTargets = true
+            mat.color.setHex(0xffaaaa)
+            for(let i = 0; i < 729; i++) {
+                let mesh = new THREE.Mesh(geometry, materials)
+                let x = (i % 27 - 13.5) * 2 + THREE.Math.randFloatSpread(1)
+                let z = (~~(i / 27) - 13.5) * 2 + THREE.Math.randFloatSpread(1)
+                mesh.position.set(x, 0, z)
+                let s = THREE.Math.randFloat(0.00075, .001)
+                mesh.scale.set(s, s, s)
+                mesh.rotation.y = THREE.Math.randFloat(-.25, .25)
+                mesh.matrixAutoUpdate = false
+                mesh.updateMatrix()
+                scene.add(mesh)
+                mixer.clipAction(geometry.animations[0], mesh)
+                     .setDuration(1)
+                     .startAt(-Math.random())
+                     .play()
+            }
+        })
+        let ambient = new THREE.AmbientLight(0xcccccc)
+        scene.add(ambient)
+        let po = new THREE.PointLight(0xff4400, 5, 30)
+        po.position.set(5, 0, 0)
+        scene.add(po)
+
+        let renderer = new THREE.WebGLRenderer()
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        document.body.appendChild(renderer.domElement)
+
+        addEventListener('resize', function() {
+            camera.aspect = innerWidth / innerHeight
+            camera.updateProjectionMatrix()
+            renderer.setSize(innerWidth, innerHeight)
+        }, false)
+
+        let animate = function animate() {
+            requestAnimationFrame(animate)
+            renderer.render(scene, camera)
+            let timer = Date.now() * .0005
+            camera.position.x = Math.cos(timer) * 10
+            camera.position.y = 4
+            camera.position.z = Math.sin(timer) * 10
+            mixer.update(clock.getDelta())
+            camera.lookAt(scene.position)
+        }()
+    }
+</script>
