@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+</head>
+<style>
+    body{
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body onload="init()">
+</body>
+</html>
+<script id="vertex" type="x-shader/x-vertex">
+    void main(){
+        gl_Position = vec4(position,1.0);
+    }
+</script>
+<script id="fragment" type="x-shader/x-fragment">
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    void main(){
+        vec2 st = gl_FragCoord.xy / u_resolution.xy;
+        gl_FragColor = vec4(st.x, st.y, 0.0, 1.0);
+    }
+</script>
+<script>
+    function init() {
+        let camera = new THREE.Camera()
+        camera.position.z = 1
+
+        let scene = new THREE.Scene()
+        scene.background = new THREE.Color(0x000000)
+
+        let geo = new THREE.PlaneBufferGeometry(2, 2)
+        let uniforms = {
+            u_time: {type: 'f', value: 1.0},
+            u_resolution: {type: 'v2', value: new THREE.Vector2()}
+        }
+        let mat = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: document.querySelector('#vertex').textContent,
+            fragmentShader: document.querySelector('#fragment').innerHTML
+        })
+        scene.add(new THREE.Mesh(geo, mat))
+
+        let renderer = new THREE.WebGLRenderer()
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        document.body.appendChild(renderer.domElement)
+
+        addEventListener('resize', onResize, false)
+
+        function onResize() {
+            renderer.setSize(innerWidth, innerHeight)
+            uniforms.u_resolution.value.x = renderer.domElement.width
+            uniforms.u_resolution.value.y = renderer.domElement.height
+        }
+        console.log(renderer.domElement.width)
+        console.log(renderer.domElement.height)
+
+        onResize()
+
+        function animate() {
+            requestAnimationFrame(animate)
+            renderer.render(scene, camera)
+            uniforms.u_time.value += 0.05
+        }
+
+        animate()
+    }
+</script>
