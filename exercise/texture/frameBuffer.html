@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/OrbitControls.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+<div id="lay">
+    <div></div>
+</div>
+</body>
+</html>
+<script>
+    let camera, renderer, scene,
+        mesh, texture, sprite
+    let aspect = innerWidth / innerHeight
+    let cameraOrtho, sceneOrtho
+    let dpr = devicePixelRatio
+    let textureSize = 128 * dpr
+    let vector = new THREE.Vector2()
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(70, aspect, .1, 10000)
+        camera.position.z = 20
+
+        cameraOrtho = new THREE.OrthographicCamera(-innerWidth / 2, innerWidth / 2, innerHeight / 2, -innerHeight / 2, 1, 10)
+        cameraOrtho.position.z = 10
+
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0x20252f)
+        sceneOrtho = new THREE.Scene()
+
+        let geometry = new THREE.TorusKnotBufferGeometry(3, 1, 256, 32)
+        let material = new THREE.MeshStandardMaterial({
+            color: 0x6083c2
+        })
+        mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
+
+        scene.add(new THREE.AmbientLight(0xcccccc, .4))
+        let pointLight = new THREE.PointLight(0xffffff, .8)
+        camera.add(pointLight)
+        scene.add(camera)
+
+        let data = new Uint8Array(textureSize * textureSize * 3)
+        texture = new THREE.DataTexture(data, textureSize, textureSize, THREE.RGBFormat)
+        texture.minFilter = THREE.NearestFilter
+        texture.magFilter = THREE.NearestFilter
+        texture.needsUpdate = true
+
+        let spriteMaterial = new THREE.SpriteMaterial({
+            map: texture
+        })
+        sprite = new THREE.Sprite(spriteMaterial)
+        sprite.scale.set(textureSize, textureSize, 1)
+        sceneOrtho.add(sprite)
+
+        updateSpritePosition()
+
+        renderer = new THREE.WebGLRenderer({antialias: true})
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.autoClear = false
+        document.body.appendChild(renderer.domElement)
+
+        let overlay = document.getElementById('lay')
+        let controls = new THREE.OrbitControls(camera, overlay)
+        controls.enablePan = false
+
+        window.addEventListener('resize', onResize, false)
+        animate()
+    }
+
+    function onResize() {
+        camera.aspect = aspect
+        camera.updateProjectionMatrix()
+        cameraOrtho.left = -innerWidth / 2
+        cameraOrtho.right = innerWidth / 2
+        cameraOrtho.top = innerHeight / 2
+        cameraOrtho.bottom = -innerHeight / 2
+        cameraOrtho.updateProjectionMatrix()
+        renderer.setSize(innerWidth, innerHeight)
+        updateSpritePosition()
+    }
+
+    function updateSpritePosition() {
+        let hWidth = innerWidth / 2
+        let hHeight = innerHeight / 2
+        let hImageWidth = textureSize / 2
+        let hImageHeight = textureSize / 2
+        sprite.position.set(-hWidth + hImageWidth, hHeight - hImageHeight, 1)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        mesh.rotation.x += .0005
+        mesh.rotation.y += .01
+        renderer.clear()
+        renderer.render(scene, camera)
+
+        vector.x = (innerWidth * dpr / 2) - (textureSize / 2)
+        vector.y = (innerHeight * dpr / 2) - (textureSize / 2)
+        renderer.copyFramebufferToTexture( vector, texture );
+        renderer.clearDepth()
+        renderer.render(sceneOrtho, cameraOrtho)
+    }
+
+    init()
+</script>

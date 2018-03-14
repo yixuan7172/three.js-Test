@@ -36,14 +36,15 @@
         camera.position.z = 500;
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf0f0f0);
         var geometry = new THREE.BoxGeometry(200, 200, 200);
 
-        for(let i = 0; i < geometry.faces.length; i += 2) {
+        for (let i = 0; i < geometry.faces.length; i+=2) {
+            //hex：16进制的颜色
             let hex = Math.random() * 0xffffff
             geometry.faces[i].color.setHex(hex)
             geometry.faces[i + 1].color.setHex(hex)
         }
+        console.log(geometry)
         let material = new THREE.MeshBasicMaterial({
             vertexColors: THREE.FaceColors,
             overdraw: 0.5
@@ -108,7 +109,7 @@
     }
 
     function onDocumentTouchStart(e) {
-        if(e.touches.length === 1) {
+        if (e.touches.length === 1) {
             e.preventDefault()
             mouseXOnMouseDown = e.touches[0].pageX - windowHalfX
             targetRotationOnMouseDown = targetRotation
@@ -116,7 +117,7 @@
     }
 
     function onDocumentTouchMove(e) {
-        if(event.touches.length === 1) {
+        if (event.touches.length === 1) {
             e.preventDefault()
             mouseX = e.touches[0].pageX - windowHalfX
             targetRotation = targetRotationOnMouseDown + (mouseX - mouseXOnMouseDown) * .05
