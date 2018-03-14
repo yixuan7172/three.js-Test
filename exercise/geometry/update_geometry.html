@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+
+</body>
+</html>
+<script>
+    class App {
+        constructor() {
+            this.camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, .1, 2000)
+            this.camera.position.z = 900
+            this.scene = new THREE.Scene()
+            this.scene.background = new THREE.Color(0x525252)
+
+            this.object = this.createObject(this.createMaterials(), 1)
+            this.object.position.set(-100, 100, 0)
+            this.scene.add(this.object)
+
+            this.newObject = this.createObject(this.createMaterials(), 1)
+            this.newObject.position.set(100, 100, 0)
+            this.scene.add(this.newObject)
+
+            this.toggleObject = this.object
+            this.object = this.createObject(this.createMaterials(), 4)
+            this.object.position.set(-100, -100, 0)
+            this.scene.add(this.object)
+
+            this.objectRandom = this.object
+            this.object = this.createObject(this.createMaterials(), 4)
+            this.object.position.set(100, -100, 0)
+            this.scene.add(this.object)
+
+            this.objectRandomIndices = this.object
+
+            this.renderer = new THREE.WebGLRenderer()
+            this.renderer.setSize(innerWidth, innerHeight)
+            this.renderer.setPixelRatio(devicePixelRatio)
+            document.body.appendChild(this.renderer.domElement)
+
+            window.addEventListener('resize', this.onResize, false)
+
+            this.animate()
+        }
+
+        createObject(material, segments) {
+            return new THREE.Mesh(this.createGeometry(segments), material)
+        }
+
+        createGeometry(segments) {
+            let geometry = new THREE.BoxGeometry(100, 100, 100, segments, segments, segments)
+            let matrix = new THREE.Matrix4()
+            let euler = new THREE.Euler()
+            geometry.applyMatrix(matrix.makeRotationFromEuler(euler.set(Math.random() * 2 * Math.PI, Math.random() * 2 *
+                                                                                                     Math.PI, Math.random() *
+                                                                                                              2 *
+                                                                                                              Math.PI)))
+            return geometry
+        }
+
+        createMaterials() {
+            return [
+                new THREE.MeshBasicMaterial({color: Math.random() * 0xfffff}),
+                new THREE.MeshBasicMaterial({color: Math.random() * 0xfffff}),
+                new THREE.MeshBasicMaterial({color: Math.random() * 0xfffff}),
+                new THREE.MeshBasicMaterial({color: Math.random() * 0xfffff}),
+                new THREE.MeshBasicMaterial({color: Math.random() * 0xfffff}),
+                new THREE.MeshBasicMaterial({color: Math.random() * 0xfffff})
+            ]
+        }
+
+        animate() {
+            // requestAnimationFrame(this.animate.bind(this))
+            setTimeout(() => {
+                this.animate()
+            }, 1000)
+            this.render()
+        }
+
+        render() {
+            this.renderer.render(this.scene, this.camera)
+        }
+
+        onResize() {
+            this.renderer.setSize(innerWidth, innerHeight)
+            this.camera.aspect = innerWidth / innerHeight
+            this.camera.updateProjectionMatrix()
+        }
+    }
+
+    new App()
+</script>
