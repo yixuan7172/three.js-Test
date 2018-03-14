@@ -1,9 +1,13 @@
 # Three.js 记录
   * 依赖three.js的脚本，必须放在three.js之后
-  ## Renderer
+  ## WebGLRenderer
     * renderer.shadowMap.type = THREE.PCFShadowMap 阴影映射类型
-    * autoClear 再渲染之前是否清除输出。
+    * autoClear:在渲染之前是否清除输出。
     * setFaceCulling() 渲染器剔除模式
+    * autoClear:定义渲染器在呈现帧之前是否应该自动清除它的输出。
+    * clearDepth()：清除深度缓冲
+    * clear():告诉渲染器清除它的颜色、深度或模板绘制缓冲区。该方法将颜色缓冲区初始化为当前清晰的颜色值。参数默认为true。
+    * copyFramebufferToTexture：将当前WebGLFramebuffer的像素复制到2D纹理中。
 
   ## light
     * light.bias 减少阴影偏差

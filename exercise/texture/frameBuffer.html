@@ -13,9 +13,6 @@
     }
 </style>
 <body>
-<div id="lay">
-    <div></div>
-</div>
 </body>
 </html>
 <script>
@@ -52,8 +49,8 @@
 
         let data = new Uint8Array(textureSize * textureSize * 3)
         texture = new THREE.DataTexture(data, textureSize, textureSize, THREE.RGBFormat)
-        texture.minFilter = THREE.NearestFilter
-        texture.magFilter = THREE.NearestFilter
+        texture.minFilter = THREE.LinearFilter
+        texture.magFilter = THREE.LinearFilter
         texture.needsUpdate = true
 
         let spriteMaterial = new THREE.SpriteMaterial({
@@ -68,11 +65,11 @@
         renderer = new THREE.WebGLRenderer({antialias: true})
         renderer.setPixelRatio(devicePixelRatio)
         renderer.setSize(innerWidth, innerHeight)
+        //autoClear:定义渲染器在呈现帧之前是否应该自动清除它的输出。
         renderer.autoClear = false
         document.body.appendChild(renderer.domElement)
 
-        let overlay = document.getElementById('lay')
-        let controls = new THREE.OrbitControls(camera, overlay)
+        let controls = new THREE.OrbitControls(camera)
         controls.enablePan = false
 
         window.addEventListener('resize', onResize, false)
@@ -103,12 +100,14 @@
         requestAnimationFrame(animate)
         mesh.rotation.x += .0005
         mesh.rotation.y += .01
+
         renderer.clear()
         renderer.render(scene, camera)
 
         vector.x = (innerWidth * dpr / 2) - (textureSize / 2)
         vector.y = (innerHeight * dpr / 2) - (textureSize / 2)
         renderer.copyFramebufferToTexture( vector, texture );
+        //clearDepth:清除深度缓冲
         renderer.clearDepth()
         renderer.render(sceneOrtho, cameraOrtho)
     }
