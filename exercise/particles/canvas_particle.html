@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../libs/three.js"></script>
+    <script src="../../libs/Projector.js"></script>
+    <script src="../../libs/CanvasRenderer.js"></script>
+
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body onload="init()">
+
+</body>
+</html>
+<script>
+    let scene, camera, renderer
+    let aspect = innerWidth / innerHeight
+    let mouseX = 0, mouseY = 0
+    let group, particle
+    let halfX = innerWidth / 2, halfY = innerHeight / 2
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(78, aspect, .1, 3000)
+        camera.position.z = 1000
+
+        scene = new THREE.Scene()
+
+        let PI2 = Math.PI * 2
+        let program = function(context) {
+            context.beginPath()
+            context.arc(0, 0, .5, PI2, false)
+            context.fill()
+        }
+        group = new THREE.Group()
+        scene.add(group)
+
+        for(let i = 0; i < 1000; i++) {
+            let material = new THREE.SpriteCanvasMaterial({
+                color: Math.random() * 0xffffff,
+                program: program
+            })
+            particle = new THREE.Sprite(material)
+            particle.position.set(randomNum(-1000, 1000), randomNum(-1000, 1000), randomNum(-1000, 1000))
+            particle.scale.x = particle.scale.y = randomNum(10, 30)
+            group.add(particle)
+        }
+        renderer = new THREE.CanvasRenderer()
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        document.body.appendChild(renderer.domElement)
+
+        document.addEventListener('mousemove', onMouseMove, false)
+        document.addEventListener('touchstart', onTouchStart, false)
+        document.addEventListener('touchmove', onTouchMove, false)
+        window.addEventListener('resize', onResize, false)
+
+        animate()
+    }
+
+    function onMouseMove(e) {
+        mouseX = e.clientX - halfX
+        mouseY = e.clientY - halfY
+    }
+
+    function onTouchStart(e) {
+        if(e.touches.length === 1) {
+            e.preventDefault()
+            mouseX = e.touches[0].pageX - halfX
+            mouseY = e.touches[0].pageY - halfY
+        }
+    }
+
+    function onTouchMove(e) {
+        if(e.touches.length === 1) {
+            e.preventDefault()
+            mouseX = e.touches[0].pageX - halfX
+            mouseY = e.touches[0].pageY - halfY
+        }
+    }
+
+    function onResize() {
+        halfX = innerWidth / 2
+        halfY = innerHeight / 2
+        camera.aspect = aspect
+        camera.updateProjectionMatrix()
+        renderer.setSize(innerWidth, innerHeight)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        renderer.render(scene, camera)
+        camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+        camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+        camera.lookAt(scene.position)
+        group.rotation.x += .01
+        group.rotation.y += .02
+    }
+
+    function randomNum(min, max) {
+        if(min > max) return false
+        return min + Math.random() * (max - min)
+    }
+</script>
