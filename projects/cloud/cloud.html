@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>cloud</title>
+    <script src="../../libs/three.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body onload="init()">
+
+</body>
+</html>
+<script id="vs" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    void main(){
+        vUv=uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+</script>
+<script id="fs" type="x-shader/x-fragment">
+    uniform sampler2D map;
+    uniform vec3 fogColor;
+    uniform float fogNear;
+    uniform float fogFar;
+    varying vec2 vUv;
+    void main(){
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        float fogFactor = smoothstep(fogNear,fogFar,depth);
+        gl_FragColor = texture2D(map,vUv);
+        gl_FragColor.w *= pow(gl_FragCoord.z,20.0);
+        gl_FragColor = mix(gl_FragColor,vec4(fogColor,gl_FragColor.w),fogFactor);
+    }
+</script>
+<script>
+    let mouseX = 0, mouseY = 0
+    let startTime = Date.now()
+    let windowHalfX = innerWidth / 2,
+        windowHalfY = innerHeight / 2
+    let camera, scene, renderer
+    let geometry, material, mesh
+
+    function init() {
+        let canvas = document.createElement('canvas')
+        canvas.width = 32
+        canvas.height = innerHeight
+
+        let context = canvas.getContext('2d')
+        let gradient = context.createLinearGradient(0, 0, 0, canvas.height)
+        gradient.addColorStop(0, "#1e4877")
+        gradient.addColorStop(.5, "#4584b4")
+
+        context.fillStyle = gradient
+        context.fillRect(0, 0, canvas.width, canvas.height)
+
+        camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, .1, 10000)
+        camera.position.z = 5000
+
+        scene = new THREE.Scene()
+
+        geometry = new THREE.Geometry()
+        let texture = new THREE.TextureLoader().load('img/cloud.png')
+        texture.magFilter = THREE.LinearMipMapLinearFilter
+        texture.minFilter = THREE.LinearMipMapLinearFilter
+
+        let fog = new THREE.Fog(0x4584b4, -100, 3000)
+        material = new THREE.ShaderMaterial({
+            uniforms: {
+                "map": {
+                    type: "t",
+                    value: texture
+                },
+                "fogColor": {
+                    type: "c",
+                    value: fog.color
+                },
+                "fogNear": {
+                    type: "f",
+                    value: fog.near
+                },
+                "fogFar": {
+                    type: "f",
+                    value: fog.far
+                }
+            },
+            vertexShader: document.getElementById('vs').textContent,
+            fragmentShader: document.getElementById('fs').textContent,
+            depthWrite: false,
+            depthTest: false,
+            transparent: true
+        })
+        let plane = new THREE.Mesh(new THREE.PlaneGeometry(64, 64)),
+            copyGeo=new THREE.Geometry()
+        for(let i = 0; i < 8000; i++) {
+            plane.position.x = randomNum(-500, 500)
+            plane.position.y = -Math.random() * randomNum(-15, 185)
+            plane.position.z = i
+            plane.rotation.z = Math.random() * Math.PI
+            plane.scale.x = plane.scale.y = Math.random() * randomNum(0.5, 2.0)
+            plane.updateMatrix()
+            copyGeo.copy(plane.geometry)
+            copyGeo.applyMatrix(plane.matrix)
+            geometry.merge(copyGeo)
+        }
+        mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
+
+        mesh = new THREE.Mesh(geometry, material)
+        mesh.position.z = -8000
+        scene.add(mesh)
+
+        renderer = new THREE.WebGLRenderer({antialias: true})
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setSize(innerWidth, innerHeight)
+        document.body.appendChild(renderer.domElement)
+
+        document.addEventListener('mousemove', onMouseMove, false)
+        window.addEventListener('resize', onResize, false)
+
+        animate()
+    }
+
+    function onMouseMove(e) {
+        mouseX = (e.clientX - windowHalfX) * .25
+        mouseY = (e.clientY - windowHalfY) * .15
+        console.log(mouseX,mouseY)
+    }
+
+    function onResize() {
+        camera.aspect = innerWidth / innerHeight
+        camera.updateProjectionMatrix()
+        renderer.setSize(innerWidth, innerHeight)
+    }
+
+    function randomNum(min, max) {
+        if(min > max) return
+        return min + Math.random() * (max - min)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        renderer.render(scene, camera)
+
+        let pos = (Date.now() - startTime*.03) % 7500
+        camera.position.x += (mouseX - camera.position.x)
+        camera.position.y += (-mouseY - camera.position.y)
+        camera.position.z = -pos / 5
+    }
+</script>
