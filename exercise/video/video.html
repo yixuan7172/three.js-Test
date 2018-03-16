@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../libs/three.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body onload="init()">
+
+</body>
+</html>
+<script>
+    let camera, scene, renderer, mesh
+    let isUserInteracting = false
+    let mouseX = 0, mouseY = 0
+    let lon = 0, onMouseDownLon = 0
+    let lat = 0, onMouseDownLat = 0,
+        phi                     = 0, theta = 0,
+        distance                = 50
+    let onPointerDownPointerX = 0,
+        onPointerDownPointerY = 0,
+        onPointerDownLon      = 0,
+        onPointerDownLat      = 0
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+        camera.target = new THREE.Vector3(0, 0, 0)
+        scene = new THREE.Scene();
+        var geometry = new THREE.SphereBufferGeometry(500, 60, 40);
+        geometry.scale(-1, 1, 1)
+        let video = document.createElement('video')
+        video.crossOrigin = 'anonymous'
+        video.width = 640
+        video.height = 360
+        video.loop = true
+        video.src = '../assets/textures/pano.webm'
+        video.setAttribute('webkit-playsinline', 'webkit-playsinline')
+        video.play()
+
+        let texture = new THREE.VideoTexture(video)
+        texture.minFilter = THREE.LinearFilter
+        texture.format = THREE.RGBFormat
+        let material = new THREE.MeshBasicMaterial({
+            map: texture
+        })
+        mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
+
+        renderer = new THREE.WebGLRenderer()
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        document.body.appendChild(renderer.domElement)
+
+        console.log(document)
+        document.addEventListener('mousedown', onMouseDown, false)
+        document.addEventListener('mousemove', onMouseMove, false)
+        document.addEventListener('mouseup', onMouseUp, false)
+        document.addEventListener('wheel', onWheel, false)
+        document.addEventListener('resize', onResize, false)
+
+        animate()
+    }
+
+    function onMouseDown(e) {
+        e.preventDefault()
+        isUserInteracting = true
+        onPointerDownPointerX = e.clientX
+        onPointerDownPointerY = e.clientY
+        onPointerDownLon = lon
+        onPointerDownLat = lat
+    }
+
+    function onMouseMove(e) {
+        if(isUserInteracting) {
+            lon = (onPointerDownPointerX - e.clientX) * .1 + onPointerDownLon
+            lat = (e.clientY - onPointerDownPointerY) * .1 + onPointerDownLat
+        }
+    }
+
+    function onMouseUp(e) {
+        isUserInteracting = false
+    }
+
+    function onWheel(e) {
+        distance += e.deltaY * .05
+        distance = THREE.Math.clamp(distance, 1, 50)
+    }
+
+    function onResize() {
+        camera.aspect = innerWidth / innerHeight
+        camera.updateProjectionMatrix()
+        renderer.setSize(innerWidth, innerHeight)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        render()
+    }
+
+    function render() {
+        lat = Math.max(-85, Math.min(85, lat))
+        phi = THREE.Math.degToRad(90 - lat)
+        theta = THREE.Math.degToRad(lon)
+        camera.position.set(
+            distance * Math.sin(phi) * Math.cos(theta),
+            distance * Math.cos(phi),
+            distance * Math.sin(phi) * Math.sin(theta)
+        )
+        camera.lookAt(camera.target)
+        renderer.render(scene, camera)
+    }
+</script>
