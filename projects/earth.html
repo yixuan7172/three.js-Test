@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+</html>
+<script>
+    (function() {
+        'use strict'
+        //全局
+        let closeStars, distantStars
+        let sky, earth, sputnik
+
+
+        let scene    = new THREE.Scene(),
+            camera   = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 10000),
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                canvas: document.getElementById('canvas'),
+                alpha: true
+            })
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.shadowMap.enabled = true
+        renderer.setClearColor(0x000000, 0)
+        renderer.setPixelRatio(devicePixelRatio)
+
+        function flipCoin() {
+            let flip = ~~(Math.random() * 2)
+            if(flip === 1) {
+                return Math.ceil(Math.random() * -700) - 400
+            } else {
+                return Math.ceil(Math.random() * 500) + 200
+            }
+        }
+
+        function onWindowResize() {
+            renderer.setSize(innerWidth, innerHeight)
+            camera.aspect = innerWidth / innerHeight
+            camera.updateProjectionMatrix()
+        }
+
+        function createLights() {
+            let ambient = new THREE.AmbientLight(0xd5d5d5)
+            ambient.intensity = .5
+            let hemisphereLight = new THREE.HemisphereLight(0x2f586d, 0x0e4a6d, .7)
+            let shadowLight = new THREE.DirectionalLight(0xE5CC20, .8)
+            let shadowLight2 = new THREE.DirectionalLight(0x136D69)
+            shadowLight.position.set(200, -350, 0)
+            shadowLight2.position.set(-200, 500, 10)
+            shadowLight.castShadow = true
+            shadowLight2.castShadow = true
+
+            shadowLight.shadow.camera.left = -1400
+            shadowLight.shadow.camera.right = 1400
+            shadowLight.shadow.camera.top = 1400
+            shadowLight.shadow.camera.bottom = -1400
+            shadowLight.shadow.camera.near = 1
+            shadowLight.shadow.camera.far = 1000
+            scene.add(ambient, hemisphereLight, shadowLight, shadowLight2)
+        }
+
+        function CreateDistantStars() {
+            let particleCount = 10000,
+                geometry      = new THREE.Geometry(),
+                material      = new THREE.PointsMaterial({
+                    color: 0xffffff,
+                    size: 1
+                })
+            for(let i = 0; i < particleCount; i++) {
+                let px       = randomNum(-1500, 1500),
+                    py       = randomNum(-1500, 1500),
+                    pz       = flipCoin(),
+                    particle = new THREE.Vector3(px, py, pz)
+                geometry.vertices.push(particle)
+            }
+            this.mesh = new THREE.Points(geometry, material)
+        }
+
+        function CreateCloseStars() {
+            this.mesh = new THREE.Object3D()
+            let geometry = new THREE.SphereGeometry(2, 6, 6)
+            this.material = new THREE.MeshPhongMaterial({
+                shininess: 100,
+                specular: 0xffffff,
+                transparent: true
+            })
+            let star, startCount = 155
+            for(let i = 0; i < startCount; i++) {
+                star = new THREE.Mesh(geometry, this.material)
+                star.position.set(
+                    Math.random() * (innerWidth + 1) - innerWidth / 2,
+                    Math.random() * (innerHeight + 1) - innerHeight / 2,
+                    ~~(Math.random() * (1200 - 1)) - 1500
+                )
+                star.scale.set(.5, .5, .5)
+                this.mesh.add(star)
+            }
+        }
+
+        function createCosmos() {
+            distantStars = new CreateDistantStars()
+            closeStars = new CreateCloseStars()
+            closeStars.mesh.position.set(0, 0, 0)
+            distantStars.mesh.position.set(0, 0, 0)
+            scene.add(distantStars.mesh, closeStars.mesh)
+        }
+
+        function Cloud() {
+            this.mesh = new THREE.Object3D()
+            let geometry = new THREE.DodecahedronBufferGeometry(4, 0)
+            let material = new THREE.MeshPhongMaterial({
+                color: 0xd0e333,
+                shininess: 10,
+                flatShading: true
+            })
+            let nBlocs = 5 + ~~(Math.random() * 7)
+            for(let i = 0; i < nBlocs; i++) {
+                let m = new THREE.Mesh(geometry, material)
+                m.position.set(
+                    Math.sin(i) * 3,
+                    Math.random() * 1.1,
+                    Math.random() * .7
+                )
+                m.rotation.y = Math.random() * Math.PI * 1.5
+                m.rotation.z = Math.random() * Math.PI * 1.5
+
+                let s = randomNum(.3, .6)
+                m.scale.set(s, s, s)
+                m.castShadow = true
+                this.mesh.add(m)
+            }
+        }
+
+        function Sky() {
+            this.mesh = new THREE.Object3D()
+            let Pivot = function() {
+                this.mesh = new THREE.Object3D()
+                this.mesh.position.set(0, 0, 0)
+            }
+            this.mesh.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2))
+            this.nClouds = 23
+
+            let stepAngle = Math.PI * 2 / this.nClouds
+
+            for(let i = 0; i < this.nClouds; i++) {
+                let p = new Pivot(),
+                    c = new Cloud()
+                let a = stepAngle * i,
+                    h = 62 + Math.random() * 5
+                c.mesh.position.x = Math.cos(a) * h
+                c.mesh.position.y = Math.sin(a) * h
+                c.mesh.rotation.z = a + Math.PI / 2
+
+                let s = randomNum(0, 2)
+                c.mesh.scale.set(s, s, s)
+
+                p.mesh.add(c.mesh)
+                p.mesh.rotation.set(
+                    Math.PI / 180 * randomNum(0, 360),
+                    -Math.PI / 180 * randomNum(0, 360),
+                    Math.random() / 180 * randomNum(0, 360)
+                )
+                this.mesh.add(p.mesh)
+            }
+        }
+
+        function createSky() {
+            sky = new Sky()
+            sky.mesh.position.set(0, 0, 0)
+            earth.mesh.add(sky.mesh)
+        }
+
+        function Earth() {
+            this.mesh = new THREE.Object3D()
+            let geo = new THREE.OctahedronGeometry(55, 2),
+                mat = new THREE.MeshPhongMaterial({
+                    shininess: 15,
+                    color: 0x004d6d,
+                    flatShading: true
+                })
+            let earthSphere = new THREE.Mesh(geo, mat)
+            earthSphere.castShadow = true
+
+            let northPoleGeo = new THREE.SphereGeometry(35, 5, 5)
+            northPoleGeo.vertices[0].y -= 2
+            northPoleGeo.vertices[7].y += 5
+            northPoleGeo.vertices[8].y += 5
+            northPoleGeo.vertices[9].y += 5
+            northPoleGeo.vertices[10].y += 5
+            northPoleGeo.vertices[11].y += 5
+
+            let northPoleMat = new THREE.MeshPhongMaterial({
+                shininess: 15,
+                color: 0xf7f7f3,
+                flatShading: true
+            })
+            let northPole = new THREE.Mesh(northPoleGeo, northPoleMat)
+            northPole.position.set(0, 24, 0)
+
+            let southPoleGeo = new THREE.SphereGeometry(35, 5, 5)
+            southPoleGeo.vertices[0].y -= 2;
+            southPoleGeo.vertices[7].y += 5;
+            southPoleGeo.vertices[8].y += 5;
+            southPoleGeo.vertices[9].y += 5;
+            southPoleGeo.vertices[10].y += 5;
+            southPoleGeo.vertices[11].y += 5;
+
+            southPoleGeo.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI))
+            let southPoleMat = new THREE.MeshPhongMaterial({
+                shininess: 15,
+                flatShading:true,
+                color: 0xF7f7f3
+            })
+            let southPole = new THREE.Mesh(southPoleGeo, southPoleMat)
+
+            let countiGeo = new THREE.DodecahedronGeometry(25, 1)
+            countiGeo.mergeVertices()
+
+            let l = countiGeo.vertices.length
+            for(let i = 0; i < l; i++) {
+                let v = countiGeo.vertices[i]
+                if(i < l / 2) {
+                    v.y -= 5
+                    v.z += Math.random() * 5
+                    v.z += Math.random() * 5
+                } else {
+                    v.y += 7
+                    v.z -= Math.random() * 5
+                    v.x -= Math.random() * 5
+                }
+            }
+            let countiMat = new THREE.MeshPhongMaterial({
+                shininess: 15,
+                color: 0x129b40,
+                flatShading: true
+            })
+            let countinent1 = new THREE.Mesh(countiGeo, countiMat)
+            countinent1.position.set(1, 10, 33)
+            let countinent2 = new THREE.Mesh(countiGeo, countiMat)
+            countinent2.position.set(0, -3, -33)
+            countinent2.rotation.x = Math.PI / 180 * 6
+            let countinent3 = new THREE.Mesh(countiGeo, countiMat)
+            countinent3.position.set(30, 15, 0)
+            countinent3.rotation.x = Math.PI / 180 * 180
+            let countinent4 = new THREE.Mesh(countiGeo, countiMat)
+            countinent4.position.set(28, 15, 0)
+            countinent4.rotation.x = Math.PI / 180 * 270
+            countinent4.rotation.y = Math.PI / 180 * 50
+            let countinent5 = new THREE.Mesh(countiGeo, countiMat)
+            countinent5.position.set(28, 0, 20)
+            countinent5.rotation.x = Math.PI / 180 * 270
+            let countinent6 = new THREE.Mesh(countiGeo, countiMat)
+            countinent6.position.set(-28, 20, 0)
+            countinent6.rotation.x = Math.PI / 180 * 30
+
+            let atmopshereSphere = new THREE.SphereGeometry(75, 20, 20)
+            let atmopshereMaterial = new THREE.MeshPhongMaterial({
+                shininess: 100,
+                flatShading: THREE.SmoothShading,
+                color: 0x109eb4,
+                transparent: true,
+                opacity: 1.2
+            })
+            let atmoshere = new THREE.Mesh(atmopshereSphere, atmopshereMaterial)
+            northPole.receiveShadow = true
+            southPole.receiveShadow = true
+            countinent1.receiveShadow = true
+            countinent2.receiveShadow = true
+            countinent3.receiveShadow = true
+            countinent4.receiveShadow = true
+            countinent5.receiveShadow = true
+            countinent6.receiveShadow = true
+            this.mesh.add(earthSphere, northPole, southPole, countinent1
+                , countinent2, countinent3, countinent4, countinent5, countinent6,
+                atmoshere)
+        }
+
+        function createEarth() {
+            earth = new Earth()
+            earth.mesh.position.set(0, 0, -150)
+            scene.add(earth.mesh)
+        }
+
+        function Sputnik() {
+            this.mesh = new THREE.Object3D()
+            this.pivot = new THREE.Object3D()
+
+            let mainModuleGeo = new THREE.CylinderGeometry(17, 13, 50, 7, 1),
+                mainModuleMat = new THREE.MeshPhongMaterial({
+                    shininess: 100,
+                    color: 0xb2b8af,
+                    flatShading: true
+                })
+            let mainModule = new THREE.Mesh(mainModuleGeo, mainModuleMat)
+            let wingsGeo = new THREE.BoxGeometry(300, 20, 1, 11)
+            for(let i = 0; i < wingsGeo.vertices.length; i++) {
+                if(i % 2 === 0) {
+                    wingsGeo.vertices[i].z += 5
+                } else {
+                    wingsGeo.vertices[i].z -= 5
+                }
+            }
+            let wingsMat = new THREE.MeshPhongMaterial({
+                shininess: 100,
+                color: 0xd3c545,
+                flatShading: true
+            })
+            let wings = new THREE.Mesh(wingsGeo, wingsMat)
+            wings.position.set(0, 0, 0)
+            let antenaGeom = new THREE.CylinderGeometry(40, 10, 20, 10);
+
+
+            let antenaMat = new THREE.MeshPhongMaterial({
+                shininess: 100,
+                color: 0xAED3BE,
+                flatShading: true
+            });
+            let antena = new THREE.Mesh(antenaGeom, antenaMat);
+            antena.position.y = 35;
+
+            this.mesh.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 3));
+            this.mesh.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI / 3));
+
+            this.mesh.scale.set(0.1, 0.1, 0.1);
+            this.mesh.add(mainModule, wings, antena);
+
+            this.pivot.add(this.mesh);
+        }
+
+        function createSatelites() {
+            sputnik = new Sputnik();
+            sputnik.mesh.position.set(-100, 0, -100);
+            earth.mesh.add(sputnik.pivot);
+        }
+
+        function initScene() {
+            camera.position.set(0, 40, 130);
+            camera.rotation.x -= (Math.PI / 180) * 7;
+            createLights();
+            createCosmos();
+            createEarth();
+            createSky();
+
+            createSatelites();
+
+            render();
+        }
+
+        function render() {
+            closeStars.mesh.rotation.y += 0.00003;
+            closeStars.material.opacity = (Math.sin(Date.now() * 0.001)) / 2 + 0.5;
+            distantStars.mesh.rotation.y += 0.00002;
+            distantStars.mesh.rotation.x += 0.00003;
+            distantStars.mesh.rotation.z += 0.00003;
+            earth.mesh.rotation.y += 0.002;
+            sky.mesh.rotation.y -= 0.0003;
+            sky.mesh.rotation.z += 0.0003;
+
+            sputnik.pivot.rotation.y -= 0.01;
+            sputnik.pivot.rotation.x -= 0.001;
+            // sputnik.pivot.rotation.z += 0.008;
+
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(render);
+        }
+
+        window.onload = initScene;
+        window.addEventListener('resize', onWindowResize, false);
+
+
+        function randomNum(min, max) {
+            if(min > max) return false
+            return min + Math.random() * (max - min)
+        }
+
+    }())
+</script>
