@@ -1,7 +1,9 @@
 # Three.js 记录
   * 依赖three.js的脚本，必须放在three.js之后
   ## WebGLRenderer
-    * renderer.shadowMap.type = THREE.PCFShadowMap 阴影映射类型
+    * renderer.shadowMap.type:
+        * THREE.PCFShadowMap:默认阴影映射类型。
+        * THREE.PCFSoftShadowMap:让边缘柔和。
     * autoClear:在渲染之前是否清除输出。
     * setFaceCulling() 渲染器剔除模式
     * autoClear:定义渲染器在呈现帧之前是否应该自动清除它的输出。
@@ -10,6 +12,11 @@
     * copyFramebufferToTexture：将当前WebGLFramebuffer的像素复制到2D纹理中。
 
 ## light
+   * 能够创建阴影的光源：
+        1. SpotLight
+        2. DirectionalLight
+   * HemisphereLight：模拟反光面和光线微弱的天空来创建更自然的室外光线。
+   * LensFlare：为场景中的光源添加镜头光晕效果。
    * light.bias 减少阴影偏差
 
 ## DDSLoader
@@ -65,9 +72,11 @@
    * depthTest  深度测试,默认为true,如果设置为false,在场景中远处的对象不被近处的对象遮挡
    * depthWrite  允许或禁止向深度缓冲区写入数据,默认为true,指定是否允许向深度缓冲区写入数据。
    * polygonOffset 多边形位移,当两个面共面时,会出现十分难看的z - fighting 问题,要解决此问题可以使用, Polygon Offset.
-   * alphaTest  alpha测试,取值范围0.0-1.0
+   * alphaTest  alpha测试,取值范围0.0-1.0，如果某个像素的alpha值小于该值，那么该像素不会显示出来。可以使用这个属性移除一些与透明相关的毛边。
    * overdraw  当三角面之间产生间距,发生图形走样时,填充像素,确保图形保真,消除走样.通常取值范围在0.0=1.0之间
    * needsUpdate  设置该值为true后，如果材质发生改变，就会使用新的材质刷新它的缓存。
+
+    * MeshStandardMaterial -> roughness:粗糙度
 
 ## geometry
    * vertices  Geometry对象顶点位置存放在vertices属性中，若要更新this.vertices属性,需要将 Geometry.verticesNeedUpdat设置为true。
