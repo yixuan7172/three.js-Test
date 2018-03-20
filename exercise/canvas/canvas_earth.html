@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/CanvasRenderer.js"></script>
+    <script src="../libs/Projector.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body>
+
+</body>
+</html>
+<script>
+    let camera, scene, renderer
+    let group
+    let mouseX = 0, mouseY = 0
+    let halfX = innerWidth / 2, halfY = innerHeight / 2
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 10000)
+        camera.position.z = 500
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0xffffff)
+        group = new THREE.Group()
+        scene.add(group)
+        let loader = new THREE.TextureLoader()
+        loader.load('../assets/textures/land_ocean_ice_cloud_2048.jpg', function(texture) {
+            let g = new THREE.SphereGeometry(200, 20, 20)
+            let m = new THREE.MeshBasicMaterial({
+                map: texture,
+                overdraw: .5//消除走样
+            })
+            let mesh = new THREE.Mesh(g, m)
+            group.add(mesh)
+        })
+        //shadow
+        let canvas = document.createElement('canvas')
+        canvas.width = 128
+        canvas.height = 128
+        let context = canvas.getContext('2d')
+        //前三个参数定义一个圆，后三个参数定义另一个圆
+        let gradient = context.createRadialGradient(
+            canvas.width / 2,
+            canvas.height / 2,
+            0,
+            canvas.width / 2,
+            canvas.height / 2,
+            canvas.width / 2
+        )
+        gradient.addColorStop(0.1, 'rgba(210,210,210,1)')
+        gradient.addColorStop(1, 'rgba(255,255,255,1)')
+        context.fillStyle = gradient
+        context.fillRect(0, 0, canvas.width, canvas.height)
+
+        let tex = new THREE.CanvasTexture(canvas)
+        let geo = new THREE.PlaneBufferGeometry(300, 300, 3, 3)
+        let mat = new THREE.MeshBasicMaterial({
+            map: tex,
+            overdraw: .5,
+            side:THREE.DoubleSide
+        })
+        let m = new THREE.Mesh(geo, mat)
+        m.position.y = -250
+        m.rotation.x = -Math.PI / 2
+        group.add(m)
+
+        renderer = new THREE.CanvasRenderer()
+        // renderer.setClearColor(0xffffff)
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        document.body.appendChild(renderer.domElement)
+
+        document.addEventListener('mousemove', onMouseMove, false)
+        console.log(group.children);
+    }
+
+    function onMouseMove(e) {
+        mouseX = e.clientX - halfX
+        mouseY = e.clientY - halfY
+    }
+
+    function animate() {
+        render()
+        requestAnimationFrame(animate)
+    }
+
+    function render() {
+        camera.position.x += (mouseX - camera.position.x) * .05
+        camera.position.y += (-mouseY - camera.position.y) * .05
+        camera.lookAt(scene.position)
+        renderer.render(scene, camera)
+        group.rotation.y -= .005
+    }
+
+    init()
+    animate()
+</script>
