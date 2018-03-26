@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../libs/three.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+<body onload="init()">
+
+</body>
+</html>
+<script>
+    let scene, camera, renderer
+    let mesh
+    let spotLight
+    let mouseX = 0, mousY = 0
+    let targetX = 0, targetY = 0
+
+    function init() {
+        camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, .1, 10000)
+        camera.position.z = 1000
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0x060708)
+        spotLight = new THREE.SpotLight(0xffffbb, 2)
+        spotLight.position.set(.5, 0, 1)
+        spotLight.position.multiplyScalar(700)
+        scene.add(spotLight)
+        scene.add(new THREE.HemisphereLight(0x443333, 0x111122))
+        spotLight.castShadow = true
+        spotLight.shadow.mapSize.width = 2048
+        spotLight.shadow.mapSize.height = 2048
+        spotLight.shadow.camera.near = 200
+        spotLight.shadow.camera.far = 1500
+        spotLight.shadow.camera.fov = 40
+        spotLight.shadow.bias = -.0005
+
+        let mapHeight = new THREE.TextureLoader().load('../assets/models/json/leeperrysmith/Infinite-Level_02_Disp_NoSmoothUV-4096.jpg')
+        let material = new THREE.MeshPhongMaterial({
+            color: 0x552811,
+            specular: 0x222222,
+            shininess: 25,
+            bumpMap: mapHeight,
+            bunpScale: 12
+        })
+        let loader = new THREE.JSONLoader()
+        loader.load('../assets/models/json/leeperrysmith/LeePerrySmith.json', function(geometry) {
+            createScene(geometry, 100, material)
+        })
+        renderer = new THREE.WebGLRenderer()
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        document.body.appendChild(renderer.domElement)
+        renderer.shadowMap.enabled = true
+        renderer.gammaInput = true
+        renderer.gammaOutput = true
+        animate()
+        document.addEventListener('mousemove', onDocumentMouseMove, false);
+    }
+
+    function createScene(geo, scale, mat) {
+        mesh = new THREE.Mesh(geo, mat)
+        mesh.position.y = -50
+        mesh.scale.set(scale, scale, scale)
+        mesh.castShadow = true
+        scene.add(mesh)
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        targetX = mouseX * .001
+        targetY = mousY * .001
+        if(mesh) {
+            mesh.rotation.y += .05 * (targetX - mesh.rotation.y)
+            mesh.rotation.x += .05 * (targetY - mesh.rotation.x)
+        }
+        renderer.render(scene, camera)
+    }
+
+    function onDocumentMouseMove(e) {
+        mouseX = e.clientX - innerWidth / 2
+        mousY = e.clientY - innerHeight / 2
+    }
+</script>
