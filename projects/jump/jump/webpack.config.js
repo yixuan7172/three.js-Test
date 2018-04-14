@@ -1,12 +1,13 @@
 var path = require('path')
 var webpack = require('webpack')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
     entry: './src/index.js',
     output: {
         path: path.resolve(__dirname, './dist'),
         publicPath: '/dist/',
-        filename: 'build.js'
+        filename: './src/assets/[name].[ext]?[hash]'
     },
     module: {
         rules: [{
@@ -26,10 +27,10 @@ module.exports = {
             loader: 'babel-loader',
             exclude: /node_modules/
         }, {
-            test: /\.(png|jpg|gif|svg)$/,
+            test: /\.(png|jpg|gif|svg|FBX)$/,
             loader: 'file-loader',
             options: {
-                name: '[name].[ext]?[hash]'
+                name: './src/assets/[name].[ext]?[hash]'
             }
         }]
     },
@@ -37,7 +38,7 @@ module.exports = {
         alias: {
             'vue$': 'vue/dist/vue.esm.js'
         },
-        extensions: ['*', '.js', '.vue', '.json']
+        extensions: ['*', '.js', '.vue', '.json', '.FBX']
     },
     devServer: {
         historyApiFallback: true,
@@ -47,7 +48,10 @@ module.exports = {
     performance: {
         hints: false
     },
-    devtool: '#eval-source-map'
+    devtool: '#eval-source-map',
+    plugins: [
+        new ExtractTextPlugin('./src/assets/[name].[ext]?[hash]')
+    ]
 }
 
 if (process.env.NODE_ENV === 'production') {
