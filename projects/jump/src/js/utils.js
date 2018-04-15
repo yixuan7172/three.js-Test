@@ -35,6 +35,13 @@ class Utils {
         if (min > max) return
         return min + ~~((max - min) * Math.random())
     }
+
+    getDistance(startPos, endPos) {
+        let subX = startPos.x - endPos.x
+        let subY = startPos.y - endPos.y
+        let subZ = startPos.z - endPos.z
+        return Math.sprt(Math.pow(subX) + Math.pow(subY) + Math.pow(subZ))
+    }
 }
 
 let utils = new Utils()

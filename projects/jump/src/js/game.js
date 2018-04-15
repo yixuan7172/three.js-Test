@@ -56,13 +56,13 @@ Game.prototype = {
         return plane
     },
     createPlayer() {
-        let cube = new THREE.BoxGeometry(1.5, 3, 1.5)
+        let cube = new THREE.BoxGeometry(1.5, 4, 1.5)
         let mat = new THREE.MeshBasicMaterial({
             color: 0x8B008B,
             side: THREE.DoubleSide
         })
         let mesh = new THREE.Mesh(cube, mat)
-        mesh.position.y = 6
+        mesh.position.set(0, 8, 0)
         this.scene.add(mesh)
         return mesh
     },
@@ -72,7 +72,7 @@ Game.prototype = {
             color: 0xE6E6FA
         })
         let mesh = new THREE.Mesh(geo, mat)
-        mesh.position.set(0, 2, 0)
+        mesh.position.set(0, 3, 0)
         nextCube.position = new THREE.Vector3().copy(mesh.position)
         this.scene.add(mesh)
 
@@ -85,7 +85,6 @@ Game.prototype = {
             nextCube.dir = 1
         }
         this.randomCreateCube(direction, nextCube.position)
-        console.log(nextCube.position)
         return mesh
     },
     randomCreateCube(dir, position) {
@@ -94,7 +93,6 @@ Game.prototype = {
             color: Math.random() * 0xffffff
         })
         let mesh = new THREE.Mesh(geo, mat)
-        mesh.position.set(position.x, position.y, position.z)
         mesh.position.set(position.x, position.y, position.z)
         nextCube.position = new THREE.Vector3().copy(mesh.position)
         this.scene.add(mesh)
@@ -108,38 +106,83 @@ game.animate()
 
 class Player {
     constructor() {
-        this.tw_scale = null
-        this.tw_position = null
-        this.interval = null
+        this.tw_posX = null
+        this.tw_posZ = null
+        this.scaleInterval = null
+        this.jumpInterval = null
+        this.distance = new THREE.Vector3()
+        this.nextPos = new THREE.Vector3()
     }
 
     mouseDown(e) {
         if (e.button === 2) return
-        let nowTime = this.getStartTime()
+        const _this = this
+        if (e.button === 2) return
+        let nowTime = _this.getStartTime()
         let endTime = null
-        this.interval = setInterval(() => {
+        _this.scaleInterval = setInterval(() => {
             endTime = this.getStartTime()
             if ((endTime - nowTime) > 30) {
                 nowTime = endTime
-                if (game.player.scale.y <= .4) return
-                game.player.scale.y -= 0.05
-                game.player.position.y -= .05
+                if (game.player.scale.y <= .4) {
+                    clearInterval(_this.scaleInterval)
+                    _this.scaleInterval = null
+                }
+                game.player.scale.y -= 0.03
+                game.player.position.y -= .03
             }
         }, 100)
+        _this.jumpInterval = setTimeout(() => {
+            if (game.player.scale.y <= .4) {
+                clearInterval(_this.jumpInterval)
+                _this.jumpInterval = null
+            }
+            if (direction.forward === nextCube.dir) {
+                _this.distance.y += 10
+                _this.distance.z -= 10
 
+            } else {
+                _this.distance.y += 10
+                _this.distance.x += 10
+            }
+        }, 100)
     }
 
     mouseUp() {
-        clearInterval(this.interval)
-        this.interval = null
+        const _this = this
+        _this.scaleInterval && clearInterval(_this.scaleInterval)
+        _this.jumpInterval && clearInterval(_this.jumpInterval)
+        _this.scaleInterval = null
+        _this.jumpInterval = null
+        let currPlayerPos = game.player.position.clone()
+        let obj = {x: game.player.position.x, y: game.player.position.y, z: game.player.position.z}
         if (direction.forward === nextCube.dir) {//前
-
-            game.player.position.y += 20
-            game.player.position.z += 20
-            return
+            _this.tw_posZ = new TWEEN.Tween(obj)
+                .to({y: (currPlayerPos.y += _this.distance.y), z: (currPlayerPos.z += _this.distance.z)}, 500)
+                .onUpdate(() => {
+                    game.player.position.y = obj.y
+                    game.player.position.z = obj.z
+                })
+                .onComplete(() => {
+                    _this.tw_posZ.stop()
+                    _this.distance.set(0, 0, 0)
+                    console.log('右进完毕')
+                })
+                .start()
+        } else {
+            _this.tw_posX = new TWEEN.Tween(obj)
+                .to({y: (currPlayerPos.y += _this.distance.y), x: (currPlayerPos.x += _this.distance.x)}, 500)
+                .onUpdate(() => {
+                    game.player.position.y = obj.y
+                    game.player.position.x = obj.x
+                })
+                .onComplete(() => {
+                    _this.tw_posX.stop()
+                    _this.distance.set(0, 0, 0)
+                    console.log('右进完毕')
+                })
+                .start()
         }
-        game.player.position.x += 20
-        game.player.position.z += 20
     }
 
     getStartTime() {
@@ -149,6 +192,7 @@ class Player {
     judgeNextCubePos() {
 
     }
+
 }
 
 let player = new Player()
