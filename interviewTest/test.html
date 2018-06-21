@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script type="text/javascript"
+            src="http://webapi.amap.com/maps?v=1.4.6&key=b3feaf5d8a5445cd6ab70e24c6534859"></script>
+    <script src="./three.min.js"></script>
+    <script src="./FBXLoader.js"></script>
+    <script src="inflate.min.js"></script>
+    <script src="OrbitControls.js"></script>
+</head>
+<style>
+    #container {
+        position: absolute;
+        width: 1024px;
+        height: 1024px;
+    }
+    #box{
+        position: absolute;
+        width: 1024px;
+        height: 1024px;
+    }
+</style>
+
+<body>
+<div id="container"></div>
+<div id="box"></div>
+</body>
+
+</html>
+
+<script>
+    var map = new AMap.Map('container', {
+        zoom: 11, //级别
+        center: [116.397428, 39.90923], //中心点坐标
+        viewMode: '3D' //使用3D视图
+    });
+    let mixers = []
+    let camera, scene, loader, renderer, light
+    let controls
+
+    function init() {
+        renderer = new THREE.WebGLRenderer({antialias: true, alpha: true})
+        renderer.setSize(innerWidth, innerHeight)
+        renderer.setPixelRatio(devicePixelRatio)
+        renderer.setClearColor(0x000000, 0)
+        document.body.appendChild(renderer.domElement)
+
+        camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 10000)
+        camera.position.set(0, 0, 800)
+        controls = new THREE.OrbitControls(camera)
+
+        scene = new THREE.Scene()
+
+        light = new THREE.HemisphereLight(0xffffff, 0x444444);
+        light.position.set(0, 200, 0);
+        scene.add(light);
+
+        loader = new THREE.FBXLoader()
+        loader.load('Samba Dancing.fbx', object => {
+            object.mixer = new THREE.AnimationMixer(object);
+            mixers.push(object.mixer);
+            var action = object.mixer.clipAction(object.animations[0]);
+            action.play();
+            scene.add(object)
+        })
+
+        animate()
+    }
+
+    function animate() {
+        requestAnimationFrame(animate)
+        renderer.render(scene, camera)
+        controls.update()
+    }
+
+    init()
+</script>
