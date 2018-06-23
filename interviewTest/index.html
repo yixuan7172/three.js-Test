@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>test</title>
     <script type="text/javascript"
             src="http://webapi.amap.com/maps?v=1.4.6&key=b3feaf5d8a5445cd6ab70e24c6534859"></script>
     <script src="./three.min.js"></script>
@@ -14,44 +13,51 @@
     <script src="OrbitControls.js"></script>
 </head>
 <style>
+    body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
     #container {
         position: absolute;
-        width: 1024px;
-        height: 1024px;
-    }
-    #box{
-        position: absolute;
-        width: 1024px;
-        height: 1024px;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        left: 0;
+        top: 0;
+        z-index: -1;
     }
 </style>
 
 <body>
-<div id="container"></div>
 <div id="box"></div>
+<div id="container"></div>
 </body>
 
 </html>
 
 <script>
+    let camera, scene, renderer
+    let loader, light, controls
+    let obj, time = 0
+    let clock = new THREE.Clock()
+
     var map = new AMap.Map('container', {
-        zoom: 11, //级别
-        center: [116.397428, 39.90923], //中心点坐标
-        viewMode: '3D' //使用3D视图
-    });
-    let mixers = []
-    let camera, scene, loader, renderer, light
-    let controls
+        zoom: 20,
+        resizeEnable: true,
+        viewMode: '3D'
+    })
 
     function init() {
         renderer = new THREE.WebGLRenderer({antialias: true, alpha: true})
         renderer.setSize(innerWidth, innerHeight)
-        renderer.setPixelRatio(devicePixelRatio)
         renderer.setClearColor(0x000000, 0)
-        document.body.appendChild(renderer.domElement)
+        document.getElementById('box').appendChild(renderer.domElement)
 
         camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 10000)
-        camera.position.set(0, 0, 800)
+        camera.position.set(0, 0, 2000)
+        camera.lookAt(new THREE.Vector3(40, -150, 0))
         controls = new THREE.OrbitControls(camera)
 
         scene = new THREE.Scene()
@@ -62,10 +68,7 @@
 
         loader = new THREE.FBXLoader()
         loader.load('Samba Dancing.fbx', object => {
-            object.mixer = new THREE.AnimationMixer(object);
-            mixers.push(object.mixer);
-            var action = object.mixer.clipAction(object.animations[0]);
-            action.play();
+            obj = object
             scene.add(object)
         })
 
@@ -73,9 +76,14 @@
     }
 
     function animate() {
+        let delta = clock.getDelta()
+        time += delta
         requestAnimationFrame(animate)
         renderer.render(scene, camera)
-        controls.update()
+        if(obj) {
+            obj.position.x += Math.sin(time) * 5
+            obj.position.y += Math.cos(time) * 5
+        }
     }
 
     init()
