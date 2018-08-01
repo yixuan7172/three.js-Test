@@ -6,6 +6,11 @@ const direction = {
     forward: 0,
     right: 1
 }
+const config = {
+    speedX: 10,
+    speedY: 10,
+    speedZ: 10,
+}
 
 function Game() {
     this.scene = this.createScene()
@@ -30,7 +35,9 @@ Game.prototype = {
     },
 
     createRenderer() {
-        let renderer = new THREE.WebGLRenderer({antialias: true})
+        let renderer = new THREE.WebGLRenderer({
+            antialias: true
+        })
         renderer.setSize(innerWidth, innerHeight)
         renderer.setPixelRatio(devicePixelRatio)
         document.getElementsByClassName('container')[0].appendChild(renderer.domElement)
@@ -106,8 +113,7 @@ game.animate()
 
 class Player {
     constructor() {
-        this.tw_posX = null
-        this.tw_posZ = null
+        this.tw_restorePos = null
         this.scaleInterval = null
         this.jumpInterval = null
         this.distance = new THREE.Vector3()
@@ -117,7 +123,6 @@ class Player {
     mouseDown(e) {
         if (e.button === 2) return
         const _this = this
-        if (e.button === 2) return
         let nowTime = _this.getStartTime()
         let endTime = null
         _this.scaleInterval = setInterval(() => {
@@ -138,12 +143,12 @@ class Player {
                 _this.jumpInterval = null
             }
             if (direction.forward === nextCube.dir) {
-                _this.distance.y += 10
-                _this.distance.z -= 10
+                _this.distance.y += config.speedY
+                _this.distance.z -= config.speedZ
 
             } else {
-                _this.distance.y += 10
-                _this.distance.x += 10
+                _this.distance.y += config.speedY
+                _this.distance.x += config.speedX
             }
         }, 100)
     }
@@ -155,44 +160,76 @@ class Player {
         _this.scaleInterval = null
         _this.jumpInterval = null
         let currPlayerPos = game.player.position.clone()
-        let obj = {x: game.player.position.x, y: game.player.position.y, z: game.player.position.z}
-        if (direction.forward === nextCube.dir) {//前
-            _this.tw_posZ = new TWEEN.Tween(obj)
-                .to({y: (currPlayerPos.y += _this.distance.y), z: (currPlayerPos.z += _this.distance.z)}, 500)
+        let obj = {
+            x: game.player.position.x,
+            y: game.player.position.y,
+            z: game.player.position.z
+        }
+        let middleScale = Math.abs(1 - game.player.scale.y)
+        let _dis = _this.distance.clone()
+        if (direction.forward === nextCube.dir) { //前
+            let tw_posZ = new TWEEN.Tween(obj)
+                .to({
+                    y: (currPlayerPos.y += _this.distance.y),
+                    z: (currPlayerPos.z += _this.distance.z)
+                }, 500)
                 .onUpdate(() => {
                     game.player.position.y = obj.y
                     game.player.position.z = obj.z
                 })
                 .onComplete(() => {
-                    _this.tw_posZ.stop()
+                    tw_posZ.stop()
+                    tw_posZ = null
                     _this.distance.set(0, 0, 0)
-                    console.log('右进完毕')
                 })
                 .start()
         } else {
-            _this.tw_posX = new TWEEN.Tween(obj)
-                .to({y: (currPlayerPos.y += _this.distance.y), x: (currPlayerPos.x += _this.distance.x)}, 500)
+            let tw_posX = new TWEEN.Tween(obj)
+                .to({
+                    y: (currPlayerPos.y += _this.distance.y),
+                    x: (currPlayerPos.x += _this.distance.x)
+                }, 500)
                 .onUpdate(() => {
                     game.player.position.y = obj.y
                     game.player.position.x = obj.x
                 })
                 .onComplete(() => {
-                    _this.tw_posX.stop()
+                    tw_posX.stop()
+                    tw_posX = null
                     _this.distance.set(0, 0, 0)
-                    console.log('右进完毕')
                 })
                 .start()
         }
-    }
+        let tw_restoreScale = new TWEEN.Tween(game.player.scale)
+            .to({
+                y: middleScale,
+            }, 500)
+            .onUpdate(() => {
 
+            })
+            .onComplete(() => {
+
+            })
+            .start()
+        let tw_restoreScale2 = new TWEEN.Tween({
+                y: middleScale
+            })
+            .to({
+                y: 1
+            }, 500)
+            .onUpdate(obj => {
+                game.player.scale.y = obj.y
+            })
+            .onComplete(() => {
+
+            })
+            .start()
+        tw_restoreScale.chain(tw_restoreScale2)
+
+    }
     getStartTime() {
         return +new Date()
     }
-
-    judgeNextCubePos() {
-
-    }
-
 }
 
 let player = new Player()
